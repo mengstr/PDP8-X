@@ -5,7 +5,7 @@ A PDP-8 assembler by Douglas Jones.
 http://homepage.divms.uiowa.edu/~jones/pdp8/
 
 ### Digital.jar
-A digita circuit simulator by Helmut Neeman.  
+A digital circuit simulator by Helmut Neeman.  
 https://github.com/hneemann/Digital
 
 ### tape2bin.sh
