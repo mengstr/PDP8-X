@@ -27,6 +27,30 @@
 / the loop back the last one or two LED will flicker a bit.)
 /
 /
+/ Init:   JMP 0P->0P (requires working CLA, DCA 0P) 
+/ Tst001: JMP 0P->xP (requires working ISZ 0P, TAD 0P, HLT)
+/ Tst002: JMP xP->xP
+/ Tst003: JMP xP->0P
+/
+/       0->0{0}   0->0{x}   0->x{0}   0->x{x}   x->0{0}   x->0{x}   x->x{0}   x->x{x}
+/       Tst010    N/A       Tst004    N/A       Tst011    Tst007    Tst005    Tst006 
+/
+/ Tst004: INDIRECT JMP from 0P to xP using vector in 0P (VTo05)
+/ Tst005: INDIRECT JMP from xP to xP using vector in 0P (VTo06)
+/ Tst006: INDIRECT JMP from xP to xP via vector in xP (VTo07)
+/ Tst007: INDIRECT JMP from xP to 0P via vector in xP (VTo10)
+/ Tst010: INDIRECT JMP from 0P to 0P via vector in 0P (VTo11)
+/ Tst011: INDIRECT JMP from xP to 0P via vector in 0P (VTo12)
+/ 
+/ Tst012: AUTOINDEX JMP from 0P to xP using vector in 0P (AVTo13)
+/ Tst013: AUTOINDEX JMP from xP to xP using vector in 0P (AVTo14)
+/ Tst014: AUTOINDEX JMP from xP to 0P via vector in 0P (AVTo15)
+/ Tst015: AUTOINDEX JMP from 0P to 0P via vector in 0P (AVTo16)
+/
+/
+/
+/
+/
 / ---------------------------------------------------------------------------
 /
 / Copyright (c) 2019 Mats Engstrom/SmallRoomLabs
@@ -60,12 +84,14 @@
 /
 /
     JMP Init
+    HLT
+
 
 /
 / Normal variables used for testing
 /
-Cnt, 0                          / Step counter - shown in AC at each step
-Inc, 1234                       / Testing of ISZ
+Cnt, 5555           / Step counter - shown in AC at each step
+Inc, 5555           / Testing of ISZ
 
 
 /*************************************************************************
@@ -75,12 +101,14 @@ Inc, 1234                       / Testing of ISZ
 
 /
 / Auto-index vectors and variables
-/
-VA7, Step7-1    // Pre-inc needs to be one address less than target!
-VA8, Step8-1 
-VA12, Step12-1
-VA13, Step13-1
-VAInc, Inc-1
+/ Note: These vectors are pre-incremented and thus needs to be
+/       set to 1 location before their intended target.
+AVTo13, Tst013-1
+AVTo14, Tst014-1
+AVTo15, Tst015-1
+AVTo16, Tst016-1
+
+/VAInc, Inc-1
 
 
 /*************************************************************************
@@ -88,11 +116,13 @@ VAInc, Inc-1
 /*************************************************************************
 *20
 /
-/ Indirect vectors and variables
+/ Zero Page - Indirect vectors and variables 
 /
-V5, Step5
-V6, Step6
-VInc, Inc
+VTo05, Tst005
+VTo06, Tst006
+VTo11, Tst011
+VTo12, Tst012
+/VInc, Inc
 
 
 /*************************************************************************
@@ -102,34 +132,214 @@ VInc, Inc
 
 /
 / Initialize variables and vectors
+/ Tests JMP within zero page
 /
+   JMP ERROR
 Init,
-/    CLA; DCA Inc                / Initialize Cnt to 0
-/    CLA; TAD (7777); DCA Inc    / Initialize Inc to 1234
+    CLA                     / Initialize Cnt to 0
+    DCA Cnt                
+    CLA                     / Initialize Inc to 1234
+    TAD (7777)
+    DCA Inc    
 /    CLA; TAD (Inc); DCA VInc    / Initialize VInc to point to Inc
 /    CLA; TAD (Inc-1); DCA VAInc / Initialize VAInc to point to one address before Inc
-    JMP Step0
+    JMP Tst001
 
 /
+/ Test JMP from zero page to normal page
 /
-/
-Step0,
+   JMP ERROR
+Tst001,
     ISZ Cnt    
     CLA; TAD Cnt; HLT    / Show AC=0001
-    NOP
-    JMP Step1
+    JMP Tst002
     JMP ERROR
 
-
 /
+/ Tst004: INDIRECT JMP from 0P to xP using vector in 0P (VTo05)
 /
-/
-Step3,
+   JMP ERROR
+Tst004,
     ISZ Cnt    
     CLA; TAD Cnt; HLT    / Show AC=0004
     NOP
-    JMP Step4
+    JMP I VTo05
     JMP ERROR
+
+
+/
+/ Tst010: INDIRECT JMP from 0P to 0P via vector in 0P (VTo11)
+/
+   JMP ERROR
+Tst010,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0010
+    NOP
+    JMP I VTo11
+    JMP ERROR
+
+
+/
+/ Tst012: AUTOINDEX JMP from 0P to xP using vector in 0P (AVTo13)
+/
+   JMP ERROR
+Tst012,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0012
+    NOP
+    JMP I AVTo13
+    JMP ERROR
+
+/
+/ Tst015: AUTOINDEX JMP from 0P to 0P via vector in 0P (AVTo16)
+/
+    JMP ERROR
+Tst015,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0015
+    NOP
+    JMP I AVTo16
+    JMP ERROR
+
+
+
+/*************************************************************************
+/*************************************************************************
+/*************************************************************************
+*200
+
+/
+/ Nomal Page - Indirect vectors and variables 
+/
+VTo07, Tst007
+VTo10, Tst010
+
+
+/
+/ Test JMP from normal page to normal page
+/
+   JMP ERROR
+Tst002,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0002
+    JMP Tst003
+    JMP ERROR
+
+/
+/ Test JMP from normal page to zero page
+/
+   JMP ERROR
+Tst003,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0003
+    JMP Tst004
+    JMP ERROR
+
+
+/
+/ Tst005: INDIRECT JMP from xP to xP using vector in 0P (VTo06)
+/
+   JMP ERROR
+Tst005,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0005
+    NOP
+    JMP I VTo06
+    JMP ERROR
+
+
+/
+/ Tst006: INDIRECT JMP from xP to xP via vector in xP (VTo07)
+/
+   JMP ERROR
+Tst006,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0006
+    NOP
+    JMP I VTo07
+    JMP ERROR
+
+
+/
+/ Tst007: INDIRECT JMP from xP to 0P via vector in xP (VTo10)
+/
+   JMP ERROR
+Tst007,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0007
+    NOP
+    JMP I VTo10
+    JMP ERROR
+
+/
+/ Tst011: INDIRECT JMP from xP to 0P via vector in 0P (VTo12)
+/
+   JMP ERROR
+Tst011,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0011
+    NOP
+    JMP I VTo12
+    JMP ERROR
+
+
+/
+/ Tst013: AUTOINDEX JMP from xP to xP using vector in 0P (AVTo14)
+/
+   JMP ERROR
+Tst013,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0013
+    NOP
+    JMP I AVTo14
+    JMP ERROR
+
+
+/
+/ Tst014: AUTOINDEX JMP from xP to 0P via vector in 0P (AVTo15)
+/
+   JMP ERROR
+Tst014,
+    ISZ Cnt    
+    CLA; TAD Cnt; HLT    / Show AC=0015
+    NOP
+    JMP I AVTo15
+    JMP ERROR
+
+
+
+Tst016, JMP SUCCESS
+
+/*************************************************************************
+/*************************************************************************
+/*************************************************************************
+*5250
+
+/
+/ Display success pattern on address leds
+/ 101010101xxx 
+/
+SUCCESS, 
+    NOP             / The nop is required or some emulators will
+    JMP SUCCESS     / not show the correct address on the LEDS
+
+
+/*************************************************************************
+/*************************************************************************
+/*************************************************************************
+*7700
+
+/
+/ Display error pattern on address leds
+/ 111111000xxx 
+/
+ERROR, 
+    NOP             / The nop is required or some emulators will
+    JMP ERROR       / not show the correct address on the LEDS
+
+
+$
+
 
 
 /
@@ -477,33 +687,6 @@ Cont23,                         / Ok so far, compare Inc with 0000
 Step24,
     JMP SUCCESS
 
-
-/*************************************************************************
-/*************************************************************************
-/*************************************************************************
-*5250
-
-/
-/ Display success pattern on address leds
-/ 101010101xxx 
-/
-SUCCESS, 
-    NOP             / The nop is required or some emulators will
-    JMP SUCCESS     / not show the correct address on the LEDS
-
-
-/*************************************************************************
-/*************************************************************************
-/*************************************************************************
-*7700
-
-/
-/ Display error pattern on address leds
-/ 111111000xxx 
-/
-ERROR, 
-    NOP             / The nop is required or some emulators will
-    JMP ERROR       / not show the correct address on the LEDS
 
 
 $
