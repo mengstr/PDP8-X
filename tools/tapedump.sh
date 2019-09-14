@@ -86,6 +86,8 @@ while read line; do
     if [ $mode == 2 ]; then
         data=$data${line:1:2}
         mode=0
+        lastAddress=$address
+        lastData=${buf[$address]}
         buf[$address]=$data
         (( address++ ))
         continue
@@ -98,6 +100,9 @@ while read line; do
 
 done < $tmpfile
 rm $tmpfile
+
+# Undo the last written data that was the checksum in a .bin file
+buf[$lastAddress]=$lastData
 
 address=0
 pages=$((WORDS/128))

@@ -64,17 +64,21 @@ while read line; do
     op=${line:0:1}
 
     # Leader/Trailer records - Just ignore them
-    if [ "$op" == "2" ]; then continue; fi
+    if [ "$op" == "2" ]; then 
+    	continue; 
+    fi
 
     # Field records - update the field variable (unused in this code)
     if [ "$op" == "3" ]; then
         field=${line:1:1}
+	>&2 echo "Field record "$field
         continue
     fi
 
     # Origin records - update the address variable at the second(final) record
     if [ $mode == 1 ]; then
         origin=$origin${line:1:2}
+	>&2 echo "Origin record 0"$origin
         address=$((8#$origin))
         mode=0
         continue
@@ -85,12 +89,18 @@ while read line; do
         continue
     fi
 
-    # Data records - update the ram-array with the new value at the second(final) record
+    # Data records - update the ram-array with the new value at the 
+    # second(final) record, but ignore any data desitned for other fields
+    # than field 0 (within the first 4 KW of memory)
     if [ $mode == 2 ]; then
         data=$data${line:1:2}
         mode=0
-        ram[$address]=$data
-        (( address++ ))
+        if [ "$field" == "0" ]; then
+            lastAddress=$address
+            lastData=${ram[$address]}
+            ram[$address]=$data
+            (( address++ ))
+        fi
         continue
     fi
     if [ "$op" == "0" ]; then
@@ -102,7 +112,11 @@ while read line; do
 done < $tmpfile
 rm $tmpfile
 
+# Undo the last written data that was the checksum in a .bin file
+ram[$lastAddress]=$lastData
+
 # Write all the ram data as plain binary chars to stdout 
+>&2 echo "Writing..."
 for ((i=0; i<WORDS; i++)); do
     v=$((8#$o${ram[$i]}))
     vH=$(printf "%x" $(( v / 256 )) )
