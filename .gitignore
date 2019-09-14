@@ -1,3 +1,7 @@
+# MacOS specific files
+.DS_Store
+
 # Editor backup files 
 *~
 .tmp
+
