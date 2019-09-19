@@ -1,0 +1,228 @@
+          T00  t01  t02  T03  t04  t05  T06  t07  t08  T09  t10  t11  T12  t13  t14  T15  t16  t17
+           v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v       
+           .              .              .              .              .              .                 
+           .______________.              .              .              .              .                 
+CK0________|              |______________.______________.______________.______________._________________
+           .     ____     .              .              .              .              .                 
+___________.____|    |____.______________.______________.______________.______________._________________
+           .              .              .              .              .              .                  
+           .              .              .              .              .              .                 
+           .              .______________.              .              .              .                 
+CK1________.______________|              |______________.______________.______________._________________
+           .              .     ____     .              .              .              .                 
+___________.______________.____|    |____.______________.______________.______________._________________
+           .              .              .              .              .              .                 
+           .              .              .              .              .              .                 
+           .              .              .______________.              .              .                 
+CK2________.______________.______________|              |______________.______________._________________
+           .              .              .     ____     .              .              .                 
+___________.______________.______________.____|    |____.______________.______________._________________
+           .              .              .              .              .              .                 
+           .              .              .              .              .              .                 
+           .              .              .              .______________.              .                 
+CK3________.______________.______________.______________|              |______________._________________
+           .              .              .              .     ____     .              .                 
+___________.______________.______________.______________.____|    |____.______________._________________
+           .              .              .              .              .              .                 
+           .              .              .              .              .              .                 
+           .              .              .              .              .______________.                 
+CK4________.______________.______________.______________.______________|              |_________________
+           .              .              .              .              .     ____     .                 
+___________.______________.______________.______________.______________.____|    |____._________________
+           .              .              .              .              .              .                 
+           .              .              .              .              .              .                 
+           ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^    ^       
+          T00  t01  t02  T03  t04  t05  T06  t07  t08  T09  t10  t11  T12  t13  t14  T15  t16  t17
+
+
+--------------------------------------------------------------------------------------------------------
+  ┯Active High    ┷Active Low     ⬆Rising Edge Triggered      ⬇ Falling Edige Triggered
+--------------------------------------------------------------------------------------------------------
+┯PC2ADDR Busses connected while high
+┯RAM_OE  Output if enabled while high
+┷IR_CK   IR Holds data while low
+⬇PC_CK  PC Increases at falling edge
+⬆HALT   Rising edige triggers halt (deferred until next CK0)
+--------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------
+FETCH
+CK0
+    T00     ┯PC2ADDR    ┯RAM_OE    ┷IR_CK     ⬇PC_CK
+--------------------------------------------------------------------------------------------------------
+OPR2 - HLT
+CK1
+    T03     ⬆HALT
+--------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------------------------------------------------
+
+/ TEST 33
+CLA CLL
+TAD K2525
+                                / AC=2525, LINK=0
+ CLA  CMA    CML        IAC 
+/AC=0 AC=!AC LINK=!LINK AC++
+                                / AC=0000, LINK=0
+
+
+/ TEST 34
+CLA CLL CML
+TAD K2525
+                                / AC=2525, LINK=1
+ CLA  CMA    CML        IAC 
+/AC=0 AC=!AC LINK=!LINK AC++
+                                / AC=0000, LINK=1
+
+
+
+LOGICAL SEQUENCE OPR 1 MICROCODES
+1 CLA CLL
+2 CMA CML
+3 IAC
+4 RAR RAL RTR RTL BSW
+
+
+-----------------------------------------------------------------------------
+
+IOT instructions in FOCAL
+-------------------------
+6 14 2 - 6=IOT 14=Buffered Display  2=Skip on Slave Light Pen Hit Flag
+
+6 07 7 - 6=IOT 07=  7=
+6 15 2 - 6=IOT 15=Buffered Display   2=Skip on Edge flag
+
+6 76 2 - 6=IOT 76=Second RX01 Disk   2=XDR transfer Data Register
+6 01 2 - 6=IOT 01=High Speed Reader  2=RRB Read Reader Buffer
+6 34 6 - 6=IOT 34=  6=
+6 77 2 - 6=IOT 77=First RX01 Disk    2=XDR transfer Data Register
+
+-----------------------------------------------------------------------------
+
+To run FOCAL without interrupts, change: Loc/From To
+    63   from 2676 (x16 x3E) to 1353 (x0B x2B)
+    64   from 2666 (x16 x36) to 2413 (x14 x0B)
+    2732 from 6001 (x30 x01) to 5336 (x2B x1E)
+    2762 from 6046 (x30 x26) to 7000 (x38 x00)
+    6324 from 1037 (x08 x1F) to 6011 (x30 x09)
+    6325 from 7700 (x3F x00) to 7410 (x3C x08)
+
+o63=x33     *2 = x66   + x42 header = x00A8
+o64=x34     *2 = x68 . + x42 header = x00AA
+o2732=x5DA  *2 = xBB4  + x42 header = x0BF6
+o2762=x5F2  *2 = xBE4  + x42 header = x0C26
+o6324=xCD4  *2 = x19A8 + x42 header = x19EA
+o6325=xCD5  *2 = x19AA + x42 header = x19EC
+
+--------------------------------------------------------------------------------------
+
+
+DEC's 1974 PDP-8 Pocket Reference Card
+http://homepage.divms.uiowa.edu/~jones/pdp8/refcard/74.html
+
+--------------------------------------------------------------------------------------
+
+IOT MICROINSTRUCTIONS
+
+                                  GENERATES   GENERATES
+                                  AN IOP 4     AN IOP 1
+                                  PULSE AT     PULSE AT
+    OPERATION                  EVENT TIME 3   EVENT TIME 1
+                                    IF A 1     IF A 1
+   _ CODE 6  _
+  /___ ___ ___\___ ___ ___ ___ ___ ___/___\___/___\
+  |   |   |   |   |   |   |   |   |   |   |   |   |
+  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10| 11|
+  |___|___|___|___|___|___|___|___|___|___|___|___|
+              \________        _______/   \   /
+                        DEVICE          GENERATES
+                       SELECTION         AN IOP 2
+                                         PULSE AT
+                                       EVENT TIME 2
+                                          IF A 1
+
+Bit 11 causes the processor to skip the next instruction if the I/O device is ready.
+Bit 10 clears AC.
+Bit 9 moves a word between AC and the device, initiates another I/O transfer, and clears the device's "ready" flag.
+
+
+
+
+PROGRAM INTERRUPT
+    ION      6001  turn interrupt on                     
+    IOF      6002  turn interrupt off                    
+
+ANALOG TO DIGITAL CONVERTER TYPE 189
+    ADC      6004  convert A to D
+
+TELETYPE KEYBOARD/READER
+    KSF      6031  skip if keyboard/reader flag = 1   
+    KCC      6032  clear AC and keyboard/reader flag
+    KRS      6034  read keyboard/reader buffer, static
+    KRB      6036  clear AC, read keyboard buffer clear keyboard flag
+
+TELETYPE TELEPRINTER/PUNCH
+    TSF      6041  skip if teleprinter/punch flag = 1
+    TCF      6042  clear teleprinter/punch flag       
+    TPC      6044  load teleprinter/punch buffer, select and print
+    TLS      6046  load teleprinter/punch buffer, select and print, and clear teleprinter/punch flag
+
+HIGH SPEED PERFORATED TAPE READER TYPE PC02
+    RSF      6011  skip if reader flag = 1            
+    RRB      6012  read reader buffer, and clear flag
+    RFC      6014  clear flag and buffer and fetch character
+
+HIGH SPEED PERFORATED TAPE PUNCH TYPE PC03
+    PSF      6021  skip if punch flag = 1             
+    PCF      6022  clear flag and buffer              
+    PPC      6024  load buffer and punch character
+    PLS      6026  clear flag and buffer; load and punch
+
+OSCILLOSCOPE DISPLAY TYPE 34B
+    DXL      6053  clear and load x buffer            
+    DYL      6063  clear and load y buffer            
+    DXS      6057  combined dxl and dix               
+    DYS      6067  combined dyl and diy               
+    DIY      6064  intensify point                    
+    DIX      6054  intensify point                    
+    DCY      6061  clear y buffer                     
+    DCX      6051  clear x buffer                     
+
+DECTAPE AND CONTROL TYPE TU55/TC01
+    DTRA     6761  read status register A             
+    DTCA     6762  clear status register A            
+    DTXA     6764  load status register A             
+    DTSF     6771  skip on flags                      
+    DTRB     6772  read status register B             
+    DTLB     6774  load status register B             
+
+EXTENDED MEMORY TYPE 183
+    CDF      62n1  change to data field n                
+    CIF      62n2  change to instruction field n         
+    RDF      6214  read data field into AC 6-8           
+    RIF      6224  read instruction field into AC 6-8    
+    RMF      6244  restore memory field                  
+    RIB      6234  read interrupt buffer                 
+
+
+
