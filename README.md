@@ -34,7 +34,8 @@ The prereleases are available from https://infdigital.dhbw-mosbach.de
 The main repo of the Digital project is at https://github.com/hneemann/Digital
 
 ## Versions
-- 2019-09-19 v0.1 - Runs MAINDEC-8E-D0AB (Instruction test 1) successfully
+- 2019-09-23 v0.2 - Runs MAINDEC-8E-D0BB (Instruction test 2) successfully
 - 2019-09-19 v0.2PA - Runs MAINDEC-8E-D0BB (Instruction test 2) until *2677. Uses 8-slot banked memory to ease changing of test images.
+- 2019-09-19 v0.1 - Runs MAINDEC-8E-D0AB (Instruction test 1) successfully
 
  
