@@ -6,6 +6,16 @@ Ths is currently a work-in-progress, with the end goal of actually build one in 
 
 Step one is to get the simulation fully working with the built-in non-standard components.  Then I'll convert the simulation design to use 74-series chips that still can be purchased - I expect some changes will be requred in regards of triggering at rising or falling edges and whether 3'rd-state outputs are available in the parts. Finally I'll spend some time optimizing the design, with a focus on the total chip count.
 
+## Diagnostic tests
+
+|Test tape|Description|Status|Run time|
+|----|----|----|----:|
+| MAINDEC-8E-D0AB | Instruction test 1| OK | 7m30s |
+| MAINDEC-8E-D0BB | Instruction test 2 | OK | 8m00s |
+| MAINDEC-8E-D0IB | Basic JMP-JMS | OK |11m50s |
+
+The run time show how long it too running the test on a Late 2013 MacBookPro until the first _bel_ (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
+
 ## Some screenshots
 ![Overall view](https://raw.githubusercontent.com/SmallRoomLabs/PDP8-X/master/pictures/Sim-Overall-v0.2.png)
 
@@ -37,5 +47,3 @@ The main repo of the Digital project is at https://github.com/hneemann/Digital
 - 2019-09-23 v0.2 - Runs MAINDEC-8E-D0BB (Instruction test 2) successfully
 - 2019-09-19 v0.2PA - Runs MAINDEC-8E-D0BB (Instruction test 2) until *2677. Uses 8-slot banked memory to ease changing of test images.
 - 2019-09-19 v0.1 - Runs MAINDEC-8E-D0AB (Instruction test 1) successfully
-
- 
