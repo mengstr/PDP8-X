@@ -10,11 +10,14 @@ Step one is to get the simulation fully working with the built-in non-standard c
 
 |Test tape|Description|Status|Run time|
 |----|----|----|----:|
-| MAINDEC-8E-D0AB | Instruction test 1| OK | 7m30s |
-| MAINDEC-8E-D0BB | Instruction test 2 | OK | 8m00s |
-| MAINDEC-8E-D0IB | Basic JMP-JMS | OK |11m50s |
+| MAINDEC-8E-D0AB-InstTest-1 | Instruction test 1| OK | 7m30s |
+| MAINDEC-8E-D0BB-InstTest-2 | Instruction test 2 | OK | 8m00s |
+| MAINDEC-8E-D0IB-Basic-JMP-JMS | Basic JMP-JMS | OK |11m50s |
+| MAINDEC-8E-D0JB-Random-JMP-JMS | Random JMP-JMS | Fails | |
+| MAINDEC-8E-D0DB-Random-AND | Random AND | Fails | |
+| MAINDEC-8E-D0CC-AddTest | Adder tests | ? |35hrs? |
 
-The run time show how long it too running the test on a Late 2013 MacBookPro until the first _bel_ (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
+The run time show how long it took running the test on a Late 2013 MacBookPro until the first _bel_ (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
 
 ## Some screenshots
 ![Overall view](https://raw.githubusercontent.com/SmallRoomLabs/PDP8-X/master/pictures/Sim-Overall-v0.2.png)
