@@ -1,0 +1,22 @@
+  *10
+STRP,  MSG-1         
+
+*200
+        TFL             / Init TTY
+LOOP,   CLA             / Clear AC in preparation for TAD
+        TAD I STRP      / Pre-increment mem location 10, fetch indirect to get the next character of our message
+        SNA             / Skip if message not complete
+        HLT
+        JMS OUT1        / Write out one character
+        JMP LOOP        / Loop for more
+
+OUT1,   0               / Subroutine - print 1 character in AC
+        TSF             / Skip if printer ready
+        JMP .-1         / Wait for flag
+        TLS             / Send the character in the AC
+        JMP I OUT1      / Return to caller
+
+MSG,
+        012;012
+        "A;"v;"a;"i;"l;"a;"b;"l;"e;" ;"s;"o;"f;"t;"w;"a;"r;"e;"s;":;012
+        "-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;012

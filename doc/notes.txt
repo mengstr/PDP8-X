@@ -1,3 +1,42 @@
+Busses
+-------
+
+
+Bus         Dest    Source
+--------------------------------
+PCIN        "PC"        RAMD
+                        IND
+                        IR+PCOUT
+                        200
+
+PCOUT       RAMA        "PC"
+            RAMD
+            (PCIN)
+
+RAMADDR     RAMA        PCOUT
+                        PCOUT+IR
+                        IND
+
+RAMDATA     RAMD        DATA
+            DATA
+
+DATA        RAMDATA     4000
+            LATCHDATA   RAMDATA
+            "IR"        INC
+            "IND"       AC
+            PCIN        PC
+
+IR          "IR"        PCIN
+                        RAMADDR
+
+INDOUT      "IND"       INC
+                        PCIN
+                        RAMADDR
+
+LATCHDATA   "DLATCH"    INC
+
+
+
           T00  t01  t02  t03  T04  t05  t06  T07  t08  t09  T10  t11  t12  T13  t14  t15  T16  t17
            v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v    v       
            .              .    .              .              .              .              .                 
