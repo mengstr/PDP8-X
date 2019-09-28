@@ -10,14 +10,25 @@ Step one is to get the simulation fully working with the built-in non-standard c
 
 |Test tape|Description|Status|Run time|
 |----|----|----|----:|
-| MAINDEC-8E-D0AB-InstTest-1 | Instruction test 1| OK | 7m30s |
-| MAINDEC-8E-D0BB-InstTest-2 | Instruction test 2 | OK | 8m00s |
-| MAINDEC-8E-D0IB-Basic-JMP-JMS | Basic JMP-JMS | OK |11m50s |
-| MAINDEC-8E-D0JB-Random-JMP-JMS | Random JMP-JMS | Fails | |
-| MAINDEC-8E-D0DB-Random-AND | Random AND | Fails | |
-| MAINDEC-8E-D0CC-AddTest | Adder tests | ? |35hrs? |
+| MAINDEC-8E-D0AB-InstTest-1 | Instruction test 1| OK |  |
+| MAINDEC-8E-D0BB-InstTest-2 | Instruction test 2 | OK | |
+| MAINDEC-8E-D0IB-Basic-JMP-JMS | Basic JMP-JMS | OK | |
+| MAINDEC-8E-D0JB-Random-JMP-JMS | Random JMP-JMS | OK |  |
+| MAINDEC-8E-D0DB-Random-AND | Random AND | OK | |
+| MAINDEC-8E-D0EB-Random-TAD | Random TAD | OK | |
+| MAINDEC-8E-D0FC-Random-ISZ | Random ISZ | OK | |
+| MAINDEC-8E-D0GC-Random-DCA | Random DCA | OK | |
+| MAINDEC-8E-D0CC-AddTest | Adder tests | ok? | >30 hrs |
+| MAINDEC-8E-D1AA-Memory-Checkerboard | Memory testing | |
+| MAINDEC-8E-D1EA-Memory-Address | Memory testing | |
+   
+The run time show how long it took running the test on a Late 2013 MacBookPro until the first output on the TTY console (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
 
-The run time show how long it took running the test on a Late 2013 MacBookPro until the first _bel_ (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
+## Other PDP-8 softwares
+|Tape|Description|Status|
+|----|----|----|
+| FOCAL-8 | Focal interpreter | Print welcome message, crashes before questions about trig functions |
+
 
 ## Some screenshots
 ![Overall view](https://raw.githubusercontent.com/SmallRoomLabs/PDP8-X/master/pictures/Sim-Overall-v0.2.png)

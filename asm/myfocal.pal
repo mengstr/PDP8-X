@@ -1,0 +1,3534 @@
+/
+/ New instructions with known symbolic names
+/
+FEXT=0000               / Floating Point Instructions
+FIXMRI FGET=AND
+FIXMRI FADD=TAD
+FIXMRI FSUB=ISZ
+FIXMRI FDIV=DCA
+FIXMRI FMUL=JMS
+FIXMRI FXPN=JMP
+FIXMRI FPUT=FXPN+1000
+FNOR=7000
+
+DYL=6063                / Set Display Y co-ordinate
+DXS=6057                / Set Display X co-ordinate and intensify
+DSB=6074                / Set VC8 brightness
+DCTA=6762               / Clear Dectape status register A
+DTRB=6772               / Read DECTape status register B
+
+LINC=6141               / Switch to LINC co-processor
+TEXTP=0017              / LINC instruction to complement AC
+PDP=0002                / Return to PDP-8 Mode
+
+/
+/ Interrupt service, autoindex registers, and various variables and
+/ pointers.
+/
+	*0001
+INTRPT=0000             / PDP-8 ISR Entry, PDP-5 PC
+	JMP I .+2               / PDP-5 ISR Entry point
+PDP,	JMP I .+1
+RESTAR,
+WORDS,	MBREAK+1
+DDTJP,	0004                    / ODD: This is never used
+P13,	13                      / Handy constant
+C100,
+DIGITS,	100                     / Handy constant
+FINT=JMS I .
+	FPNT                    / Floating Point Package
+AXIN,
+BETA,
+XR10,	.-.                     / Where to encode 6-bit text
+XR11,
+XRT,	.-.                     / General autoindex register
+XR12,
+XRT2,	.-.                     / General autoindex register
+POPA=TAD I PDLXR
+PDLXR,
+XR13,	BEGIN-1                 / Push-down stack with initial value
+FLTXR,	IOBUF-1                 / FPNT autoindex, Used by BEGIN to clear TOBUF
+FLTXR2,	.-.                     / FPNT autoindex
+TELSW,	7402                    / TTY output busy ODD: Why is this non-zero?
+/ Next three are saved/restored as a block
+AXOUT,
+COM,
+TEXTP,	3215                    / Where to get 6-bit chars ODD: Why is this non-zero?
+XCT,	0                       / Which side to get from
+GTEM,	.-.                     / Saves current packed word
+PC,	FLTZER                  / Pointer to current line of the program
+LISTL,
+SETWI,
+THISLN,	.-.                     / Pointer to "next" line of the program
+CNTRM,
+THISOP,	.-.                     / Right operator when deciding precedence
+LASTLN,
+TEMPM,	.-.                     / "Previous" line of the program
+CHARM,
+DEBGSW,	1                       / Quote flag, inhibits tracing ODD: Why initially 1?
+PACKST,
+TEMPT,	.-.                     / Start of put buffer (Rubout protection)
+PT1,
+TEMPX,	.-.                     / Pointer temporary
+LASTV,
+PNTR,	SAVE+7                  / End of defined variables
+CNTRT,
+T1,
+VAL,	.-.                     / Temporary save area
+SAC,
+T3,	0                       / Negation flag used by "F"unctions
+INBUF,
+SLK,	.-.                     / Input buffer for TTY
+BOTTOM,
+MQ,	BEGIN-1                 / Last address, from which stack grows down
+HOLD,
+INSUB,	0                       / Input from memory or TTY?
+ACTIVE,
+HINBUF,	.-.                     / Negative or character from HSR while HSR in use
+/ These are saved/restored as a block
+ADDH,
+DECK,
+EX1,	.-.                     / Floating point operand during FPNT operations
+AC1H,
+D,
+USERNO,	.-.
+AC1L,
+E,
+NEWU,	.-.
+F,
+MDECK,
+OVER1,	.-.
+/ These are saved/restored as a block
+CODET,
+EXP,
+FLAC,	.-.                     / Floating point result register for/from FPNT
+A,
+HORD,
+P77M,	.-.
+B,
+LORD,
+P1000,	.-.
+C,
+OVER2,
+P7000,	.-.
+P6777,
+SIGNF,	0                       / Remembers the original/desired sign of the result
+MINSKI,
+P7757,	ITABLE+10               / Negate the FAC
+RET=JMP I .
+EP7,
+FISW,	2004                    / Output format (initially 8.4)
+INTEGE,
+P10,	FIX                     / Return the integer part of FAC
+P17M,
+SORTCN,	.-.                     / Temporary save area
+LASTOP,
+P20,	.-.                     / Old (left) operator for precedence decisions
+ATSW,
+EFOP,
+M20M,	.-.                     / Flag indicated which of Ask, Type being performed
+CNTR,	-20                     / Counter, -20 used by BEGIN to clear TOBUF
+BUFR,
+P4,
+STARTV,	SAVE+7                  / Pointer to current end of program text
+ADD,
+M4M,	OUTL                    / ODD: Initial value bogus pointer to unused routine
+P37,
+XCTIN,	I33                     / Polled Keyboard Input Routine
+OUTDEV,	XOUTL                   / Current output routine
+INDEV,
+M200,	XI33                    / Current input routine
+C200M,
+NAGSW,	1                       / Line number switches ODD: Why initial value
+CHAR,
+UPAR,	215                     / Current character ODD: Why this initial value
+LINENO,
+MZERO,	.-.                     / Line number
+DTABLE,
+GINC,	5                       / Length of a variable in symbol table
+BDUMP,
+T2,	.-.                     / Short-term storage temp
+ALISTP,
+LIST6,	214                     / Control-L
+NOUSRS,	207                     / Control-G
+L1ST7,
+TEXTPM,	203                     / Control-C
+P337,
+TEXTC,	337                     / Back Arrow
+CLF,
+CONTN,	212                     / LF
+CCR,
+LIST3,
+MLISTP,	215                     / CR
+DLISTP,
+DMPSW,	HLT                     / Nonzero unless tracing, HLT used by BEGIN
+M100,
+P7700,
+PCM,	7700                    / Negative 100, and mask for high 6 bits
+OBUFO,
+PER,	".                      / ASCII decimal point
+OBUF1,	-77                     / Check for 6-bit control indicator
+OBUF0,
+P7600,	7600                    / Handy mask for line numbers, etc.
+IBUFO,
+M20,	-20                     / Output buffer ring size
+IBUFI,
+P177,	177                     / Mask for parity, line numbers
+DECKP,
+P17,	17                      / Output buffer ring mask
+IOTX,
+P277,	277                     / ASCII Question mark
+M2,	7776                    / Negative 2
+MINUSA,	-"A                     / ASCII A, negated
+C260,	"0                      / Digit zero
+M240,	-"                      / ASCII space, negated
+MPER,	-".                     / ASCII Dot, negated
+MCR,	-215                    / A CR character, negated
+MFLT,	-3                      / Length of a floating point value
+M5,	-5                      / Operator number of first left pren-1, negated
+M11,	-11                     / Operator number of last left pren, negated
+P77,	77                      / Handy mask/constant
+C200,	200                     / Handy mask/constant
+P4000,	4000                    / Handy mask/constant
+FLARGP,	FLARG                   / Pointer to hold area
+PTCH,	CHIN                    / Input character and echo it
+DOUBLE,	MULT2                   / Shift FAC left
+FOUTPU,	FLOUTP                  / Output floating point number
+	FLINTP                  / Input a floating point number
+COMBUF,	COMEIN                  / Command line input buffer
+CFRS,	COMEOU                  / Beginning of the text (program) storage
+END,	COMEIN                  / ODD: How is this used?
+ENDT,	BUFBEG                  / The beginning of user program storage
+RETURN=JMP I .
+EFUN31,	EFUN3                   / End of function call
+CFRSX,	FLTZER                  / Pointer to 0.0 in floating point
+PUSHJ=JMS I .
+	XPUSHJ                  / Recursive call
+POPJ=JMP I .
+	XPOPJ                   / Recursive return (End of program line)
+PUSHA=JMS I .
+	XPUSHA                  / Push AC onto the stack
+PUSHF=JMS I .
+	PD2                     / Push 3 words (FP value) onto the stack
+POPF=JMS I .
+	PD3                     / Pop 3 words (FP value) from the stack
+GETC=JMS I .
+	UTRA                    / Decode 6-bit to ASCII
+PACKC=JMS I .
+	PACBUF                  / Pack ASCII to 6-bit
+SORTJ=JMS I .
+	SORTB                   / Do table lookup-and-go
+SORTC=JMS I .
+	XSORTC                  / Check for characters in list
+PRINTC=JMS I .
+	OUT                     / Output character, LF if CR
+READC=JMS I .
+RDIV,	CHIN                    / Input character and echo it
+PRNTLN=JMS I .
+	XPRNT                   / Output a line number
+GETLN=JMS I .
+	XGETLN                  / Parse a line number
+FINDLN=JMS I .
+	XFIND                   / Find the requested line number
+ENDLN=JMS I .
+	XENDLN                  / Link a new line into the program
+RTL6=JMS I .
+	XRTL6                   / CLL RTL RTL RTL
+SPNOR=JMS I .
+	SUBS                    / Ignore spaces
+TESTN=JMS I .
+	XTESTN                  / Check whether Dot, Other, or Numeric
+TSTLPR=JMS I .
+	LPRTST                  / Check for valid left pren
+TSTGRP=JMS I .
+	TEXIT                   / Skip if AC in the same group of line numbers
+TESTC=JMS I .
+	XTESTC                  / Operator, numeric, "F", or other?
+DELETE=JMS I .
+PSIN,	XDELET                  / Delete program line(s)
+ERROR4=JMS I .
+	ERR2
+
+	*0176
+	BEGIN                   / Pointer to Intro. Dialog or Control-C handler
+START,	SKP CLA                 / Restart
+
+	*0200
+	JMP I .-2               / Deal with initialization or manual restart
+INTRPM,	TAD CFRSX               / We are not executing
+	DCA PC
+	IAC                     / We are not tracing
+	DCA DMPSW
+	DCA CHARM               / We are not quoted
+	TAD COMBOT              / Initialize stack
+	DCA XR13
+	TAD CSTAB               / Print an asterisk
+	PRINTC
+IBAR,	TAD COMBUF              / Set up the encode to scratch buffer
+	DCA BETA
+	DCA XCTIN
+OTHER,	TAD COMBUF              / Set up RUBOUT guard
+	DCA TEMPT
+IGNOR,	READC                   / Get input
+	SORTJ                   / Deal with immediate action characters
+	L1ST7-1
+	INLIST-L1ST7
+	PACKC                   / Others, we encode
+	JMP IGNOR               / and keep going
+CSTAB,	"*
+COMBOT,	BUFBEG+1
+IRETN,	PACKC                   / Encode carriage return
+	PACKC                   / Again for good measure
+	TAD COMBUF              / Get scratch buffer pointer
+GONE,	DCA TEXTP               / Set up Get pointer
+	DCA XCT                 / New pointer, first side
+	GETC                    / Get a character
+	TAD BOTTOM              / Get last free address
+	DCA XR13                / Set up recursion stack
+	SPNOR                   / Ignore spaces
+	TESTN                   / Dot, Other, or Numeric?
+	JMP GZERR               / Dot, go report the error
+	JMP INPUTX              / Other implies direct command
+	ISZ CHARM               / Numeric, Inhibit trace
+	GETLN                   / interpret line number
+	TAD P4000               / Check argument properties
+	TAD NAGSW
+	SZA CLA                 / Have both group and line in group?
+	ERROR4                  / Line number needs both group and line
+	TAD P4                  / Yes, get end of text buffer
+	DCA BETA                / Set to append new line
+	DCA XCTIN               / Start on first side
+	TAD MZERO               / Get line number
+	DCA I BETA              / Store it
+	SPNOR                   / Kill leading spaces
+	SKP                     / Have first character to move
+	GETC                    / Get a character
+SRETN,	PACKC                   / Put a character
+	TAD CHAR                / Get the character
+	TAD MCR                 / Is it carriage return?
+	SZA CLA                 / Yes
+	JMP SRETN-1             / No, Keep Moving
+	DELETE                  / Delete the old copy
+	ENDLN                   / Insert the new copy
+	JMP START               / We are done
+INPUTX,	PUSHJ                   / Recursive call
+	PROC                    / To PROC
+HSP,
+HSR,	TAD I PC                / Get address of next line
+	SNA                     / Done?
+TELSW1,	JMP START               / Yes, quit
+TELSW2,	DCA PC                  / No, Store new pointer
+TELSW3,	TAD PC                  / Get pointer
+TELSW4,	IAC                     / Skip over the line number
+TELSW5,	JMP GONE                / Go execute it
+PARITY,
+XGETLN,	.-.                     / Get line number argument
+	SPNOR                   / Skip spaces
+RESTOR,	TAD CHAR                / Is character "A?
+	TAD MINUSA
+	SNA CLA
+	JMP TTY                 / Yes, "All", start with zero
+	DCA INSUB               / No, Set ot input from memory
+	JMS I LCON              / Parse a floating point number
+XRSTAR,	TAD OVER2               / Get low FAC
+	AND P7740               / Get correct bits
+	TAD LORD                / Get middle FAC
+	SZA CLA                 / Result zero?
+	ERROR4                  / No, choke
+	TAD OVER2               / Get low FAC
+	RTL6                    / Shift into low bits
+KEY,	RAL
+TESTA,
+TTY,	DCA MZERO               / Store line number result
+	TESTN                   / Dot, Other, or Numeric?
+CNTRLC,	GETC                    / Dot, get next
+	TESTN                   / Dot, Other, or Numeric?
+	JMP GERR                / Another dot is error
+	JMP GEXIT               / Other
+	TAD P17M                / Numeric, Multiply digit by 10
+CNTRLX,	CLL RTL
+	TAD P17M
+	RAL
+	TAD MZERO               / Add to line number
+	DCA MZERO
+	GETC                    / Look at next character
+	TESTN                   / Dot, Other, or Numeric?
+GERR,	ERROR4                  / Dot is error
+	JMP GEXIT               / Other
+P100,	TAD P17M                / Numeric, add in new digit
+SILENT,	TAD MZERO
+	DCA MZERO
+	GETC                    / Get next character
+	TESTN                   / Dot, Other, or Numeric?
+TTYPE,	JMP GERR                / Dot is still error
+	SKP                     / Hoping for terminator
+	ERROR4                  / Now so is digit
+GEXIT,	CLL                     / Check out the result
+CTABS,	TAD MZERO               / Have group non-zero?
+	AND OBUF0
+	SZA CLA
+	CML                     / Yes, set link
+	TAD MZERO               / Have line-in-group zero?
+	AND P177
+	SNL SZA                 / Must have group or be zero
+GZERR,	ERROR4                  / No, Error
+	SZA CLA                 / Have line-in-group?
+	TAD P2000               / Yes, set flag
+	CML                     / Complement group flag
+	RAL                     / Shift to get both flags
+	DCA NAGSW               / and remember them
+	JMP I XGETLN            / Return
+LCON,	DECONV                  / Signed decimal input routine
+P7740,	7740                    / 177 (low line number) shifted over
+P2000,	2000                    / 4000 (have line in group), shifted right
+FNTARF,	XABS                    / FABS
+	XSGN                    / FSGN
+	XINT                    / FITR
+	EXSWP                   / FDIS
+
+	XRAN                    / FRAN
+	XADC                    / FADC
+	ARTN                    / FATN  / First deletable function
+	FEXP                    / FEXP
+	FLOG                    / FLOG
+	FSIN                    / FSIN
+	FCOS                    / FCOS
+	XSQRT                   / FSQT
+	ERROR5                  / FNEW
+	ERROR5                  / FCOM
+XKEY,	ERROR5                  / FX
+XRTL6,	.-.
+	CLL RTL                 / Shift AC 6 bits left
+	RTL
+	RTL
+	JMP I XRTL6
+DO,	GETLN                   / Interpret Argument
+	TAD PC                  / Get pointer to current line
+	PUSHA                   / Save it
+	PUSHF                   / Save all decode info for current point
+	TEXTP
+DGRP,	PUSHF                   / Save all current line number stuff
+	NAGSW
+	TAD NAGSW               / Do single line?
+	SPA CLA
+	JMP DOONE               / Yes, go do it
+	FINDLN                  / No, find the group
+	NOP                     / Group seek returns here
+	TAD LISTL               / Prepare to fetch line number
+	DCA XRT
+	TAD I XRT               / Get the line number found
+	TSTGRP                  / In the group?
+	ERROR4                  / No, no such group
+DGRP1,	PUSHJ                   / Yes, do a "GOTO", but come back here
+	PROCES-2
+	POPF                    / Restore line number stuff
+MPO,	NAGSW
+MP177,	TAD I PC                / Get the next line number
+	SNA
+IGNORE,
+KEYX,	JMP SING                / Zero, no next line
+	IAC
+GOCR,	DCA PT1                 / Point to next line's number
+	TAD NAGSW               / Are we doing all?
+	SZA SMA CLA
+ECHO,	JMP DOONE-3             / Yes, just do it
+	TAD I PT1               / No, get line number
+	TSTGRP                  / In correct group?
+	JMP SING                / No, we are done
+	TAD I PT1               / Get next line number
+	DCA MZERO               / as current line number
+	JMP DGRP                / Do another
+DOONE,	FINDLN                  / Find the line
+	ERROR4                  / No such line
+NOECHO,	PUSHJ                   / Execute it
+	PROCES
+	POPF                    / Pop line number switches, character, and line number
+	NAGSW
+DCONT,
+SING,	POPF                    / Finished a DO, pop decode pointer, side, and temp
+	TEXTP
+	POPA                    / Pop old line pointer
+EOUT,	DCA PC
+	JMP I .+1               / Go execute from there
+	PROC
+XPUSHA,	.-.                     / Save the value in AC onto the stack
+	DCA BDUMP               / Save the value
+	CMA                     / Get -1 (size of AC)
+	JMS PCHK                / Make room
+	TAD BDUMP               / Store the value
+	DCA I XR13
+	CMA                     / Adjust stack pointer
+	JMS PCHK
+	JMP I XPUSHA            / Return
+PCHK,	.-.                     / Adjust stack, check for overflow
+	TAD XR13                / Adjust the stack pointer
+EBELL,	DCA XR13
+	TAD XR13                / Stack crossing into variable space?
+	CLL CIA
+	TAD PNTR
+XBUF,	SZL CLA
+	ERROR4                  / Yes, error
+	JMP I PCHK              / No, return
+XPUSHJ,	.-.                     / Call using stack
+	TAD I XPUSHJ            / Where are we going?
+	DCA BDUMP               / Remember it
+	CMA                     / Make room on stack
+	JMS PCHK
+	TAD XPUSHJ              / Compute return address
+SETW,	IAC
+	DCA I XR13              / Put in stack
+	CMA
+P140,	JMS PCHK                / Make room again
+MX,	JMP I BDUMP             / Go where we're going
+BELLX,
+PD2,	.-.                     / Push a floating point value
+XTDUMP,	CLA CMA
+	TAD I PD2               / Get Pointer to FP data
+	DCA XRT                 / In autoindex register
+	ISZ PD2                 / Skip argument on return
+	TAD MFLT                / Get floating point length
+	JMS PCHK                / Make room for floating point
+	TAD MFLT                / Initialize counter
+	DCA BDUMP
+	TAD I XRT               / Move a word
+	DCA I XR13
+	ISZ BDUMP               / All moved?
+	JMP PD3-7               / No, move another
+	TAD MFLT                / Readjust stack
+	JMS PCHK
+	JMP I PD2               / Return
+PD3,	.-.                     / Pop floating point value
+	CLA CMA
+	TAD I PD3               / Get Destination address
+	ISZ PD3                 / (and skip it)
+	DCA XRT                 / into autoindex register
+	TAD MFLT                / Get Size of FP data
+	DCA BDUMP
+	POPA                    / Move a word
+	DCA I XRT
+	ISZ BDUMP               / Until done
+	JMP INLIST-5
+	JMP I PD3               / return
+INLIST,	RECOVR                  / Control-C
+	IBAR                    / Back Arrow
+	IGNOR                   / LF
+	IRETN                   / CR
+FLIST2,	FLIMIT                  / Comma, has limit
+MP11,	FINFIN                  / Semicolon, assume increment of one
+	ERROR5                  / CR, error
+FLIST1,	FINCR                   / Comma, must be For command
+
+	*0600
+XDECK,	PROCES                  / Semicolon, end of statement
+	PC1                     / CR, end of line
+MF,	-"F                     / F character, negated
+GOTO,	GETLN                   / Parse the line number
+	FINDLN                  / Find the line
+	ERROR4                  / No such line
+	TAD LISTL               / Get pointer to new line
+	DCA PC                  / Make that line current
+PROCES,	GETC                    / Decode a character
+PROC,	TAD CHAR                / Is it a carriage return?
+	TAD MCR
+	SNA CLA
+COMMFN,
+PC1,	POPJ                    / ODD: Why the silly jmp to jmp stuff?
+	SORTC                   / No, check for terminator
+BASEP,	GLIST-1
+BASEX,	JMP PROCES              / Terminator, try again
+XCOM,	TAD CHAR                / Mask the character
+	AND P337                / ODD: Why the masking?
+	PUSHA                   / and stack it
+	GETC                    / Get next character
+	SORTC                   / Check for terminator
+	GLIST-1
+	SKP
+	JMP .-4                 / Keep looking for terminator
+	POPA                    / Get saved character
+	SORTJ                   / Dispatch Command
+	COMLST-1
+UNDECK,	COMGO-COMLST
+	ERROR4                  / No such command
+WRITE,	GETLN                   / Get argument
+	ISZ CHARM               / Set quote mode to inhibit tracing
+	FINDLN                  / Find the first matching line
+	JMP WTESTG              / Can't find it, must be group write
+	TAD MZERO               / Get the line number
+	SZA CLA                 / Is it zero?
+XACTIO,	PRNTLN                  / No, output the line number
+	GETC                    / Get a character and output it
+	PRINTC
+	TAD CHAR                / Was it the carriage return?
+	TAD MCR
+	SZA CLA
+	JMP .-5                 / No, keep outputting
+	TAD I LISTL             / Yes, get pointer to next line
+WTEST2,	SNA                     / Is it zero?
+	JMP WTESTG+2            / Yes, we are done
+	IAC                     / Point at the line number
+	DCA PT1
+	TAD NAGSW               / Are we doing write all?
+	SMA CLA
+	TAD I PT1               / No, get new line number
+	TSTGRP                  / Is it also in the group?
+	JMP WX                  / No, we are done
+WALL,	TAD I PT1               / Yes, get line number
+	DCA MZERO               / Set as line to find
+	JMP WRITE+2             / and go find it
+WTESTG,	TAD LISTL               / Get pointer to first greater line
+	JMP WTEST2              / and try that
+	DCA CHARM               / Unquote to resume tracing
+	POPJ                    / End processing for this line (ODD: why?)
+WX,	TAD NAGSW               / New group, are we doing write all?
+	SNA SPA CLA
+	JMP WTESTG+2            / No, we are all done
+	PRINTC                  / Yes, print the CR-LF again
+	JMP WALL                / and keep going
+XTESTC,	.-.                     / Determine if operator, numeric, "F", or other
+ACTING,	SPNOR                   / Ignore spaces
+	SORTC                   / Arithmetic operator or terminator?
+	TERMS-1
+	JMP I XTESTC            / Yes, return (no skip)
+	TAD CHAR                / Get character
+P14,	ISZ XTESTC              / Arrange for skip return
+P2M,	TAD MF                  / Is it "F?
+XTTY,	SNA CLA
+	JMP XT3                 / Yes, go take skip 2 return
+	TESTN                   / Dot, Other, or Numeric?
+	JMP I XTESTC            / Dot, take numeric (skip 1) return
+	SKP                     / Other, treat as other
+	JMP I XTESTC            / Numeric, skip 1 return
+	ISZ XTESTC              / Other, skip 3 return
+XT3,	ISZ XTESTC              / "F", Skip 2 return
+	JMP I XTESTC
+XSORTC,	.-.                     / Table scan routine
+	TAD I XSORTC            / Get table address
+	DCA XR12                / Save in autindex
+	TAD I XR12              / Get a character to check for
+	SPA                     / End of table?
+	JMP SEXC                / Yes, take skip 2 return
+XTTX,	CIA                     / Subtract from character
+	TAD CHAR
+	SZA CLA                 / Equal?
+	JMP XTTX-3              / No, try again
+	TAD I XSORTC            / Yes, get table address
+	CMA                     / Form offset into table
+	TAD XR12
+	DCA P17M                / Save it for the caller
+	SKP                     / Take skip 1 return
+SEXC,	ISZ XSORTC              / Adjust return address
+	ISZ XSORTC              / Skip over table address
+XXTTY,	CLA CLL                 / return 0
+	JMP I XSORTC
+GRPTST,
+TEXIT,	.-.                     / Skip if AC in same group
+	AND OBUF0               / Mask for group number
+	CIA                     / Make negative
+	DCA BDUMP               / and save
+	TAD MZERO               / Get current line number
+	AND OBUF0               / Get current group number
+	TAD BDUMP               / Equal?
+	SNA CLA
+	ISZ TEXIT               / Yes, skip 1 on return
+	JMP I TEXIT             / return
+INPUT,	.-.                     / Input from TTY or memory
+	TAD INSUB               / Input from memory?
+	SZA CLA
+	JMP .+3                 / No, go input from TTY
+	GETC                    / Yes, get the character
+P7750,	JMP I INPUT             / and return it
+P7576,	READC                   / Get character from TTY
+	SORTJ                   / Check for edit character
+	SPECIA-1
+	INFIX-SPECIA
+	JMP I INPUT             / Return the character
+ILIST,	IF1                     / Comma, go again in skip chain
+	PROCES
+	PC1
+COMLST,	323                     / "S Set
+	306                     / "F For
+	311                     / "I If
+	304                     / "D Do
+
+	*1000
+FXPRNT,	307                     / "G Go, Goto
+	303                     / "C Comment
+	301                     / "A Ask, Accept
+	324                     / "T Type
+	314                     / "L Locations, Library, Leave
+	305                     / "E Erase, End
+	327                     / "W Write
+EXGO,	315                     / "M Modify, Move
+	321                     / "Q Quit
+	322                     / "R Return
+	212                     / LF
+/ ODD: Why use TESTC, if answer is assumed?
+IF,
+XPRNTI,	TESTC                   / Operator, numeric, "F", or other?
+EXRQ,	JMS I EXCHCK            / Operator, as expected
+	ISZ XR13                / Numeric, unstack cruft from SEGSLV
+	JMS I IPART             / "F", Check for right pren??
+	TAD M2                  / Other, Set up counter
+	DCA VAL
+	TAD HORD                / Result positive?
+	SPA
+	ISZ VAL                 / Negative, bump counter
+	SNA SPA CLA
+IF3,	ISZ VAL                 / Zero, bump counter
+	SKP                     / Not time to goto, check for terminator
+	JMP I FCONT-2           / Do a goto
+	SORTJ                   / Dispatch based on terminator
+	TLIST-1
+	ILIST-TLIST
+	GETC                    / Not a terminator, get next character
+	JMP .-4                 / and try again
+IF1,	GETC                    / Get next character
+	JMP IF3                 / Try again
+EXCHCK,
+IECALL,	ECALL
+IPART,	PARTES
+FOR,
+SET,	PUSHJ                   / Require a variable and look it up
+	GETARG
+	SPNOR                   / Ignore spaces
+	TAD CHAR                / Check for equal sign
+GETSGN,	TAD MEQ
+	SZA
+	ERROR4                  / No equal sign
+	TAD PT1                 / Save pointer to variable on stack
+	PUSHA
+CHKCON,	PUSHJ                   / Evaluate initial value
+CHKCNT,	EVAL-1
+EXRED,	POPA                    / Get pointer to variable
+	DCA PT1
+	FINT
+	FPUT I PT1              / Store initial value
+EXPRN,	FEXT
+	SORTJ                   / Check for comma, semicolon, or CR
+XPR,	TLIST-1
+	FLIST1-TLIST
+XPR2,	ERROR4                  / Not found, error
+FINCR,	TAD PT1                 / For command, Save pointer to variable
+	PUSHA
+	PUSHJ                   / Evaluate the increment/limit
+	EVAL-1
+	SORTJ                   / Look at the terminator
+EXCHE,	TLIST-1
+	FLIST2-TLIST
+	ERROR4                  / Not a valid terminator
+FLIMIT,	PUSHF                   / Save the increment
+	FLARG
+	PUSHJ                   / Get the limit
+	EVAL-1
+	PUSHF                   / Push the limit
+	FLARG
+	PUSHF                   / Push the decode pointer
+	TEXTP
+	PUSHJ                   / Execute the command(s)
+	PROCES
+	POPF                    / Pop the decode pointer
+	TEXTP
+	POPF                    / Pop the limit
+	FLARG
+	POPF                    / Pop the increment
+	BUFFER
+	POPA                    / Pop the variable reference
+	DCA PT1
+	FINT
+	FGET I PT1              / Get the variable's value
+	FADD I FINKP            / Add the Increment
+	FPUT I PT1              / Store new value
+	FSUB I FLARGP           / Subtract the limit
+	FEXT
+	TAD HORD                / Done yet?
+	SZA SMA CLA
+	POPJ                    / Yes, end of the line
+	TAD PT1                 / No, push variable reference
+	PUSHA
+	PUSHF                   / Push the increment
+FINKP,	BUFFER
+	JMP FLIMIT+4            / Go again
+MEQ,	-"=                     / ASCII equal sign, negated
+MCOM,	-",                     / ASCII Comma, negated
+FINFIN,	PUSHF                   / Push 1.0 as increment
+	FLTONE
+	JMP FLIMIT+4            / Go push limit and proceed
+EXSWP,
+XDYS,	JMS I INTEGE            / Get argument as integer
+ACTVP,	PUSHA                   / Save it
+PM2000,	TAD CHAR                / Is there a comma?
+NEXTU,	TAD MCOM
+NEXT0,	SZA CLA                 / Yes, proceed
+CONTIN,	ERROR4                  / No, error
+	PUSHJ                   / Get second argument
+	EVAL-1
+	JMS I INTEGE            / Convert to integer
+	DYL                     / Load Y coordinate
+	CLA
+	POPA                    / Pop X coordinate
+	DXS                     / Load X coordinate, intensify
+	SKP                     / Done
+XINT,	JMS I INTEGE            / Get argument as integer
+	CLA                     / Clear AC
+M6M,	RETURN                  / return
+COMGO,
+TRC1,	FOR                     / Set
+TRC2,	FOR                     / For
+LISTP,	IF                      / If
+	DO                      / Do
+	GOTO                    / Go/Goto
+	PC1                     / Comment
+FCONT,	ASK                     / Ask
+	TYPE                    / Type
+	LIBRAR                  / Locations
+	ERASE                   / Erase
+	WRITE                   / Write
+	MODIFY                  / Modify
+	START                   / Quit
+
+	*1200
+	RETRN                   / Return
+	HSPX                    / LF
+ASK,	CLA CMA                 / Remember whether ask or type command
+TYPE,	DCA M20M
+TASK,	DCA CHARM               / Not in quotes yet
+	SORTJ                   / Do lookup and go
+	ALIST-1                 / Among chars special to ask/type
+	ATLIST-ALIST
+USERTS,	ISZ M20M                / Expression, doing Ask or Type?
+	JMP TYPE2               / Type, go do it
+	PUSHJ                   / Ask, require a variable and look it up
+	GETARG
+	TAD CHAR                / Save terminator
+EXGON,	PUSHA
+	TAD BMOVE               / Print a colon
+	PRINTC
+	ISZ INSUB               / Set up for TTY input
+	IAC                     / Tell input routine we have first character
+	JMS I COMBUF-1          / Input a floating point number into the variable
+	POPA                    / Pop the terminator
+	DCA CHAR
+	JMP ASK                 / Continue with Ask
+TYPE2,	PUSHJ                   / Evaluate the expression
+	EVAL-1+1
+	JMS I FOUTPU            / And print the result
+	JMP TYPE                / Keep going
+MOVE15,
+TQUOT,	ISZ CHARM               / Got a quote, set quote flag
+	GETC                    / Get next character
+	SORTJ                   / Terminate quotes?
+	TLIST2-1
+	TLIST3-TLIST2
+	PRINTC                  / No, print the quoted text
+	JMP MOVE15+1            / Go get the next character
+TINTR,	GETC                    / Get next character
+	GETLN                   / Parse line number style
+MOVE20,	TAD MZERO               / Get result
+	DCA FISW                / Store as output format
+	JMP TYPE+1              / and continue
+TCRLF2,	TAD CCR                 / Pound sign, carriage return (form-feed?)
+	JMS I OUTDEV
+	CMA                     / Set up to print form-feed
+TCRLF,	TAD CCR                 / Get CR or not
+	PRINTC                  / Print it
+
+TASK4,	GETC                    / Get next character
+	JMP TYPE+1              / Continue with Ask/Type
+BMOVE,
+COL,	":                      / Prompt character
+MODIFY,	GETLN                   / Interpret the argument
+	FINDLN                  / Find the line to modify
+	ERROR4                  / No such line
+	TAD P4                  / Set up to store new version
+	DCA BETA
+	DCA XCTIN               / Encode left
+	TAD MZERO               / Get line number
+	DCA I BETA              / Store it
+	TAD BETA                / Remember where the beginning is for RUBOUT
+	DCA TEMPT
+SCONT,	JMS I INDEV             / Get a character
+	DCA DLISTP              / Store search character
+	ISZ CHARM               / Set quote switch to prevent tracing
+SCHAR,	GETC                    / Decode a character
+	PRINTC                  / and print it
+	SORTJ                   / Dispatch based on search character
+HOLDI,	CCR-1
+HOLDO,	LISTGO-CCR
+BUFRS,	PACKC                   / Wasn't CR or search character, copy it
+	JMP SCHAR               / and keep going
+SBAR,	TAD P4                  / Erase to beginning and wait for input
+	IAC
+	DCA BETA
+	DCA XCTIN
+SFOUND,	READC                   / Get an edit character
+	SORTJ                   / Dispatch based on it
+	ALISTP-1
+	SRNLST-ALISTP
+SGOT,	PACKC                   / Copy the character
+	JMP .-5                 / Go wait for more editing
+SORTB,	.-.
+	SNA                     / Look for AC?
+	TAD CHAR                / No, look for char
+	CIA                     / Negate
+	DCA BDUMP               / Save for later
+	TAD I SORTB             / Get table address
+	ISZ SORTB               / Skip table address
+	DCA XR12                / Store table address
+	TAD I XR12              / Get table entry
+	SPA                     / Positive?
+	JMP SEX                 / No, go take skip return
+	TAD BDUMP               / This the one?
+	SZA CLA
+	JMP SORTB+10            / No, try again
+	TAD XR12                / Yes, get table pointer
+	TAD I SORTB             / Convert to dispatch table ptr
+	DCA BDUMP               / Save it
+	TAD I BDUMP             / Get dispatch routine ptr
+	DCA BDUMP               / Save it
+	JMP I BDUMP             / Go to dispatch routine
+SEX,	ISZ SORTB               / Skip dispatch table ptr
+	CLA CLL                 / return 0
+	JMP I SORTB
+XADC,	JMS I INTEGE            / Channel numbers are integer
+	NOP                     / ODD: Was this once an IOF?
+	6375                    / Start the requested channel
+	6332                    / Wait for device
+	JMP .-1
+	6362                    / Read the device
+	DCA LORD                / Store result
+	ION                     / ODD: Why this here?
+	RETURN                  / Return
+OUTL,	.-.
+	TLS                     / Print a character
+	PLS                     / Punch the character
+	TSF                     / Wait for TTY output
+	JMP .-1                 / ODD: Assumes punch faster than TTY?
+	CLA                     / Return 0
+	JMP I OUTL
+SRNLST,	SCHAR                   / Control-L
+	SCONT                   / Control-G, switch search characters
+	RECOVR                  / Control-C, abort
+	SBAR                    / Back arrow, lose beginning text
+	SCONT+1                 / LF, copy rest of line
+LISTGO,	SRETN-1+1               / CR
+	SGOT                    / Character was found
+ALIST,	0245                    / "%
+	0242                    / ""
+	0241                    / "!
+	0243                    / "#
+	0244                    / "$
+GLIST,	0240                    / space
+
+	*1400
+TLIST,	0254                    / comma
+	0273                    / semicolon
+	0215                    / CR
+GETARG,	TESTC                   / Require a variable, then find it
+TLIST2,	242                     / Double Quote, harmless if we fall thru
+	215                     / CR, harmless if we fall thru
+	ERROR4                  / Operator, Numeric, or "F", so error
+GETVAR,	DCA XCTIN               / Encode left
+	PACKC                   / Encode first character
+	GETC                    / Get next character
+	SORTC                   / Is it a terminator?
+	TERMS-1
+	JMP GSERCH              / Yes, we have the name
+	TAD CHAR                / No, finish the encoding
+	AND P77
+	TAD M4M
+	DCA M4M                 / Remember the first two letters
+	GETC                    / Get another character
+	SORTC                   / Terminator yet?
+	TERMS-1
+	JMP GSERCH              / Yes, we have the name
+	JMP GSERCH-5            / No, keep scanning
+GSERCH,	TSTLPR                  / Is there a subscript?
+	JMP GS1                 / No, proceed
+	TAD M4M                 / Get variable name
+	DCA M20M                / Arrange its salvation
+	JMS I GECALL            / Evaluate subscript
+	POPA                    / Pop the variable name
+	DCA M4M
+	JMS I PTEST             / Check that right pren is ok
+ALPHA,	JMS I INTEGE            / Subscripts are integer
+GS1,	DCA SUBS                / Save subscript
+	TAD P4                  / Start at end of text
+GS3,	DCA PT1                 / Set up to look at a variable
+	TAD PT1                 / Reached end of variables?
+	CIA
+	TAD PNTR
+	SNA SPA CLA
+	JMP GS2                 / Yes, go create a variable
+	TAD I PT1               / No, compare variable names
+	CIA
+	TAD M4M
+	SNA CLA                 / Variable name correct?
+	JMP GFND1               / Yes, go compare subscripts
+GS4,	TAD PT1                 / No, Get variable pointer
+	TAD DTABLE              / Point to next variable
+	JMP GS3                 / and try again
+PTEST,	PARTES
+GECALL,	ECALL
+GS2,	TAD PNTR                / Room to create a variable?
+	TAD P13
+	CLL CIA
+	TAD XR13
+	SNL CLA
+	ERROR4                  / No, error
+	TAD PNTR                / Yes, get end of variable space
+	TAD DTABLE              / Increment by size of a variable
+	DCA PNTR
+	TAD M4M                 / Get variable name
+	DCA I PT1               / Store it
+	ISZ PT1                 / Point to subscript
+	TAD SUBS                / Store the subscript
+	DCA I PT1
+	ISZ PT1                 / Point to the value
+	FINT
+	FGET I CFRSX            / Get 0.0
+	FPUT I PT1              / Initialize the variable
+	FEXT
+	POPJ                    / return
+GFND1,	TAD PT1                 / Get pointer to variable
+	DCA XRT                 / Prepare to access subscript
+	TAD I XRT               / Subscripts equal?
+	CIA
+	TAD SUBS
+	SZA CLA
+	JMP GS4                 / No, keep looking
+	ISZ PT1                 / Right variable, point at the value
+	ISZ PT1
+	POPJ                    / return
+SUBS,
+XSPNOR,	.-.                     / Ignore spaces
+	TAD CHAR                / Get character
+	TAD M240                / Check for space
+	SZA CLA
+	JMP I SUBS              / Not a space, done
+	GETC                    / Space, get next character
+	JMP SUBS+1              / and try again
+M260,	-"0
+M271,	-"9
+RAND,	0000                    / Random number seed
+	2000
+	0000
+XTESTN,	.-.                     / Skip 0 for ".", 1 for alpha, 2 for num
+	TAD CHAR                / Get character
+	TAD MPER                / Is it a dot?
+	SZA CLA
+	ISZ XTESTN              / No, skip at least one
+BASES,	TAD CHAR                / Get character again
+	TAD M260                / Subtract for digit
+	DCA P17M                / Save digit
+	TAD P17M                / Get it back
+	SPA CLA                 / Could it be a digit?
+	JMP I XTESTN            / No, return
+	TAD CHAR                / Possibly, check range
+	TAD M271                / Is it a digit?
+	SPA SNA CLA
+	ISZ XTESTN              / Yes, skip two
+	JMP I XTESTN            / Return
+XRAN,	FINT
+	FADD RAND               / Add seed
+	FMUL XRAN-3             / Multply by code
+	FPUT RAND               / Store seed for later
+	FEXT
+	DCA RAND                / Clobber exponent to fix range
+	DCA EXP                 / Clobber exponent in result too
+	RETURN                  / return
+RETRN,	TAD CFRSX
+	DCA PC
+XPOPJ,	POPA                    / Pop return address
+	DCA BDUMP               / Go there
+	JMP I BDUMP
+ATLIST,	TINTR                   / "%, Set output format
+	MOVE15                  / "", Output quoted text
+	TCRLF                   / "!, Output CR-LF
+	TCRLF2                  / "#, Output CR-FF
+	TDUMP                   / "$, Dump the symbol table
+	TASK4                   / Space, just skip it
+	TASK4                   / Comma, just skip it
+	PROCES                  / Semicolon, end of command
+
+	*1600
+	PC1                     / CR, end of line
+ECALL,	.-.
+	TAD P17M                / Save Current operator, if any
+	PUSHA                   / on push-down stack
+	TAD LASTOP              / Save old operator
+	PUSHA
+	TAD M20M                / Save function or variable name, if any
+	PUSHA
+TEXTA,	TAD ECALL               / Save return address
+	PUSHA
+	GETC                    / Get a character
+EVAL,	DCA LASTOP              / Remember as old operator
+	TESTC                   / Operator, numeric, "F", or other?
+	JMP ETERM1              / Operator
+	JMP ENUM                / Numeric
+	JMP EFUN                / "F"unction name
+	PUSHJ                   / Other, look up as variable
+	GETVAR
+OPNEXT,	TESTC                   / Better have an operator/terminator
+	JMP ETERMN              / Operator, good
+ECHOLS,	212                     / Numeric, fall thru
+	377                     / "F", fall thru
+	ERROR4                  / Other, error
+ETERM1,	TAD CFRSX               / Segment starts with operator/terminator
+	DCA PT1                 / Point left operand at a zero
+	TAD M2                  / Is the operator unary minus?
+	TAD P17M
+	SNA
+	JMP ETERM               / Yes, allow it
+	IAC                     / Unary plus?
+	SNA CLA
+	JMP ARGNXT              / Yes, go ignore it
+	TAD P17M                / No, get operator
+	TAD M11                 / Possibly left pren?
+	SPA CLA
+	JMP ELPAR               / No,
+ETERMN,	TSTLPR                  / Yes, check it out
+	SKP
+	ERROR4                  / Error, bad operator
+ETERM,	TAD P17M                / Have new operator, save it
+	DCA THISOP
+	TAD THISOP              / Is it a terminator?
+	TAD M11
+	SMA CLA
+	DCA THISOP              / Yes, smash precedence to 0
+ETERM2,	TAD THISOP              / Get new operator precedence
+	CIA                     / Subtract from old operator precedence
+	TAD LASTOP
+	SPA CLA                 / Old operator higher?
+	JMP EPAR                / No, go deal
+	TAD LASTOP              / Get old operator
+	CLL RTR                 / Shift to create FPP opcode
+	RTR
+	TAD OPTABL              / Build FPP instruction
+	DCA FLOP                / Save it
+	TAD LASTOP              / Was it beginning of expression?
+	SZA CLA
+	POPF                    / No, pop left operand
+	EXP
+	FINT
+FLOP,	.-.                     / Do an operation (Fopr I PT1)
+	FPUT I FLARGP           / Store the result
+	FEXT
+	TAD FLARGP              / Point to the stored result
+	DCA PT1
+	TAD THISOP              / Matching begin and end of expression?
+	TAD LASTOP
+	SNA CLA
+	POPJ                    / Yes, go return
+	POPA                    / No, pop an operator
+	DCA LASTOP              / Make it the new first operator
+	JMP ETERM2              / and check priorities again
+EPAR,	TSTLPR                  / Left pren?
+	SKP                     /
+	JMP EPAR2               / Yes, go solve
+	TAD LASTOP              / No, push left operator for later
+	PUSHA
+	TAD PT1                 / Get pointer to left operand
+	DCA .+2                 / Get ready to stack it
+	PUSHF                   / Stack left operand
+	.-.
+	TAD THISOP              / Set new operator as old operator
+	DCA LASTOP
+ARGNXT,	GETC                    / Get next character
+	TESTC                   / Operator, number, "F", or other?
+	JMP ELPAR               / Operator, better be left pren
+	JMP ENUM                / Number
+	JMP EFUN                / Function name
+	JMP OPNEXT-2            / Variable
+OPTABL,	FGET I PT1              / Used to create FPP instructions
+ENUM,	PUSHF                   / Push the FAC
+	EXP
+	TAD FLARGP              / Point to left argument
+	DCA PT1
+	DCA INSUB               / Set to input from memory
+	JMS I COMBUF-1          / Parse the number
+	POPF                    / Restore the FAC
+	EXP
+	JMP OPNEXT              / Go look at next operator
+EFUN,	DCA M20M                / Store partial function name ("F")
+	GETC                    / Get next character
+	SORTC                   / Terminator?
+	TERMS-1
+	JMP EFUN2               / Yes, got function name
+	TAD M20M                / No, Shift hash code
+	CLL RAL
+	TAD CHAR                / Add in new character
+	JMP EFUN                / Keep going
+EFUN2,	TSTLPR                  / Expect a left pren
+	ERROR4                  / Oops, no left pren
+	JMS ECALL               / Solve for the first argument
+	POPA                    / Pop the function name
+	SORTJ                   / Dispatch the function call
+	FNTARL-1
+	FNTARF-FNTARL
+ELPAR,	TSTLPR                  / Expect a left pren
+	ERROR4                  / Oops, no left pren
+EPAR2,	JMS ECALL               / Solve the operand
+	ISZ XR13                / Discard the bogus function name
+	RETURN                  / return
+TERMS,	0240                    / Space
+	0253                    / Plus sign
+	0255                    / Minus sign
+	0257                    / Slash
+	0252                    / Asterisk
+	0336                    / Up Arrow
+	0250                    / Open parenthesis
+	0333                    / Left square bracket
+
+	*2000
+	0274                    / Less than
+	0251                    / Close parenthesis
+	0335                    / Right square bracket
+	0276                    / Greater than
+	0254                    / Comma
+	0273                    / Semicolon
+	0215                    / Carriage return
+	0275                    / Equal sign
+XSGN,	PUSHF
+	FLTONE
+DUMLN2,	POPF
+	EXP
+XABS,	TAD FLARG+1
+	SPA CLA
+	JMS I MINSKI
+EFUN3,	FINT                    / Store result as left operand
+	FNOR
+	FPUT FLARG
+	FEXT
+	TAD FLARGP              / Set pointer to left operand
+	DCA PT1
+	JMS PARTES              / Verify closing parenthesis
+	JMP I .+1               / Go pretend successful variable reference
+	OPNEXT
+FLARG,	0000
+	0000
+	0000
+	0000
+P3,	3                       / Distance between matched prens
+LPRTST,	.-.                     / Check for left pren
+	TAD P17M                / Get operator
+	TAD M11                 / Subtract nine
+	SMA CLA                 / Is it a pren?
+	JMP I LPRTST            / Definitely not (too large)
+	TAD P17M                / Maybe check other end of range
+	TAD M5
+	SZA SMA CLA             / Too small?
+	ISZ LPRTST              / No, take skip return
+	JMP I LPRTST            / Return
+PARTES,	.-.                     / See if closing pren matches opening
+	POPA                    / Pop old operator off stack
+	DCA LASTOP              / and restore it
+	TAD P3                  / Get constant offset of 3
+	POPA                    / Add to left pren number
+	CIA                     / Negate
+	TAD P17M                / Compare to closing pren
+	SZA CLA                 / Pren of correct type?
+M40M,	ERROR4                  / No, mismatched prens
+	GETC                    / Yes, get next character
+	JMP I PARTES            / and return
+XDELET,	.-.                     / Erase line(s) matching argument
+MCRM,	IOF                     / Prevent Control-C
+	FINDLN                  / Find the line
+	JMP I XDELET            / Already gone
+	ISZ CHARM               / Set quote mode to prevent trace
+	GETC                    / Get next character
+	TAD CHAR
+	TAD MCR                 / End of line being deleted?
+	SZA CLA
+	JMP .-4                 / No, keep scanning
+	TAD TEXTP               / Yes, get text pointer
+	CMA                     / Subtract from line found
+	TAD LISTL               / to get -words-to-erase
+	DCA CNTR                / Remember -words-to-erase
+	TAD CFRS                / Get beginning-of-text
+	CIA
+	TAD LISTL               / Trying to erase heading?
+M77,	SNA CLA
+	JMP START               / Yes, restart
+	NOP                     / ODD: Why NOP here
+	TAD I LISTL             / Get link from next line
+	DCA I TEMPM             / Move it to the previous line
+	TAD CFRS                / Start with header line
+DOK,	DCA BDUMP               / Save address of link word
+	TAD I BDUMP             / Get the link word
+	SNA
+	JMP DONE                / Zero, the linked list is done
+	DCA VAL                 / Save link word
+	TAD LISTL               / Subtract ptr to deleted from the link
+	CLL CIA
+	TAD VAL
+	SZL CLA                 / Need adjustment?
+	TAD CNTR                / Yes, get adjustment (-words-to-erase)
+	TAD VAL                 / Get (adjusted) pointer
+	DCA I BDUMP             / Update the pointer
+	TAD VAL                 / Get unadjusted pointer
+	JMP DOK                 / Go continue with linked list
+DONE,	CMA                     / Set up autoindex for destination
+	TAD LISTL               / of the location of the deleted line
+	DCA XRT
+	TAD CNTR                / Add words-to-erase
+	CMA                     / to beginning of line being erased
+	TAD LISTL
+	DCA XR12                / To set up source pointer
+	TAD CNTR                / Get -words-to-erase
+	TAD P4                  / Compute new program end
+	DCA P4
+	TAD BETA                / Form wrkptr-putptr-1
+	CMA                     / Since we want to move the put area too
+	TAD XR12
+	DCA VAL                 / Save it as count
+	TAD BETA                / Adjust encode pointer
+	TAD CNTR
+	DCA BETA
+	TAD I XR12              / Move a word
+	DCA I XRT
+	ISZ VAL                 / until all are moved
+	JMP .-3
+	JMP XDELET+1            / Delete more matches, if any
+CHIN,	.-.
+	JMS I INDEV             / Get a character and save it
+	DCA CHAR
+	SORTC                   / Check for no-echo character
+	ECHOLS-1
+	JMP I CHIN              / Do not echo, return
+	PRINTC                  / Echo the character
+	JMP I CHIN              / Return
+FNTARL,	"A^2+"B^2+"S            / FABS  / Table of function names, hashed
+	"S^2+"G^2+"N            / FSGN
+	"I^2+"T^2+"R            / FITR
+	"D^2+"I^2+"S            / FDIS
+	"R^2+"A^2+"N            / FRAN
+	"A^2+"D^2+"C            / FADC
+	"A^2+"T^2+"N            / FATN
+	"E^2+"X^2+"P            / FEXP
+	"L^2+"O^2+"G            / FLOG
+	"S^2+"I^2+"N            / FSIN
+	"C^2+"O^2+"S            / FCOS
+
+	*2200
+	"S^2+"Q^2+"T            / FSQT
+	"N^2+"E^2+"W            / FNEW
+	"C^2+"O^2+"M            / FCOM
+	"X                      / FX
+ERASE,	TESTC                   / Operator, numeric, "F", or Other?
+	JMP ERVX                / Operator, Erase variables only
+	JMP ERL                 / Numeric, go parse argument
+	JMP ERT-1               / "F", Error
+	TAD CHAR                / Other, is it an "A"?
+	TAD MINUSA
+	SZA
+	ERROR4                  / No, invalid argument
+ERT,	TAD ENDT                / Erase the whole program
+	DCA P4
+	DCA I CFRS              / Clear forward link in header line
+ERV,	TAD P4                  / Erase the variables
+	DCA PNTR
+	JMP START               / Restart
+ERL,	GETLN                   / Get the line number
+	TAD P4                  / Prepare to copy lines??
+	DCA BETA
+ERG,	DELETE                  / Delete the line
+	ISZ LISTL               / Point at next line number
+	TAD NAGSW               / Doing group erase?
+	SMA CLA
+	TAD I LISTL             / Yes, check line number
+	TSTGRP                  / Erase next line too?
+	JMP ERV                 / No, Go erase variables and restart
+	TAD I LISTL             / Yes, get new line number
+	DCA MZERO
+	JMP ERG                 / Go erase it and check again
+ERVX,	TAD P4                  / Just erase the variables
+	DCA PNTR
+	POPJ                    / And wrap up the current line
+XFIND,	.-.                     / Add a line to the program
+	TAD CFRS                / Insert line at front of program, if necessary
+	DCA TEMPM
+	TAD CFRS                / Begin with the first line of the program
+FINDN,	DCA LISTL               / Store pointer to current line
+	TAD LISTL               / Copy pointer to an autoindex
+	DCA XRT
+	TAD MZERO               / Get desired line number
+	CLL CIA
+	TAD I XRT               / Is this the right line?
+	SNA
+	JMP FEND3-1             / Yes, go take skip return
+	SZL CLA                 / Past it?
+	JMP FEND3               / Yes (no such line), take non-skip return
+	TAD LISTL               / No, remember this line
+	DCA TEMPM
+	TAD I LISTL             / and follow the link
+	SZA                     / End of the program?
+	JMP FINDN               / No, Keep looking
+	SKP                     / Yes, take non-skip return
+	ISZ XFIND               / Arrange for a skip return
+FEND3,	TAD LISTL               / Get the location of the line's text
+	IAC                     / (less one for autoindex)
+	DCA TEXTP               / Set up to get text from the line
+	DCA XCT
+	JMP I XFIND             / Return
+UTRA,	.-.                     / Unpack 6-bit to ASCII and implement tracing
+	JMS GET1                / Get 6-bit char, less 40
+UTF,	SPA CLA                 / Add 100?
+	TAD DIGITS              / Yes, do it
+	TAD M137                / Add -37 to check for special coding
+	TAD CHAR                / To character
+	SNA                     / Is character a 137 (question mark)?
+	JMP UTX                 / Yes, go deal with tracing
+	TAD P337                / No, restore the character
+	DCA CHAR                / Store the character
+	TAD CHARM               / Are we unquoted
+	TAD DLISTP              / and tracing?
+	SNA CLA
+	PRINTC                  / Yes, print the character decoded
+	JMP I UTRA              / return
+EXTR,	JMS GET1                / Get next 6-bit (control) character
+	CMA                     / Don't add 100
+	JMP UTRA+2              / Pretend we returned
+UTX,	TAD CHARM               / Got a 37, are we quoted?
+	SZA CLA
+	JMP GET1-2              / Yes, just return a question mark
+	TAD DLISTP              / No, complement trace switch
+	SNA CLA
+	IAC
+	DCA DLISTP
+	JMP UTRA+1              / and try again
+	TAD IOTX                / Get ASCII question mark
+	JMP EXTR-6              / and go return it
+GET1,	.-.                     / Unpack a 6-bit character, subtract 40
+	ISZ XCT                 / Which side?
+	JMP GET3
+	TAD GTEM                / Right side, get saved word
+GENO,	AND P77                 / Get the 6-bit
+	DCA CHAR                / Store as character
+	TAD CHAR                / Check for 77
+	TAD OBUF1
+	SNA CLA                 / OK to return it?
+	JMP EXTR                / No, go fix up for control character
+	TAD CHAR                / Yes, get 6-bit character
+	TAD M40                 / Subtract 40 for caller
+	JMP I GET1              / and return
+GET3,	TAD I TEXTP             / Get next word
+	DCA GTEM                / Save it
+	CMA                     / Other side next time
+	DCA XCT
+	TAD GTEM                / Get word
+	CLL RTR                 / Shift left side to right
+	RTR
+	RTR
+	JMP GENO                / Go finish up
+M40,	-40
+M137,	-137
+XENDLN,	.-.                     / Link a new line into the program
+	NOP                     / ODD: Why is this NOP here?
+	TAD I TEMPM             / Get the link from the previous line
+	DCA I P4                / Store it into the new line
+	TAD P4                  / Get pointer to the new line
+	DCA I TEMPM             / Link the previous line to the new line
+	TAD M4M                 / Was the last 6-bit character stored?
+	SZA
+	DCA I BETA              / No, store it now
+	TAD BETA                / Get pointer to end of new line
+	IAC                     / Make pointer to unused space
+	DCA P4                  / Store as new program end
+	TAD P4                  / Store also as end of variables
+UTQ,	DCA PNTR                / (erases all the variables)
+	JMP I XENDLN            / Return
+TLIST3,	TASK4                   / Unquote, go ignore and resume ask/type
+
+	*2400
+	PC1                     / CR, the line is done
+INFIX,	FLINTP+2                / Back Arrow
+	INPUT+1                 / Rubout
+	INPUT+1                 / Line-feed
+	ENDFI+5                 / ALT
+FLTONE,	0001                    / Floating point 1.0
+	2000
+FLTZER,	0000                    / Floating point 0.0
+	0000
+	0000
+	0000
+M12,	-7-3                    / Negative ten
+I33,	.-.
+	KSF                     / Keyboard ready?
+	JMP I33+1               / Nope, wait
+	KRB                     / Yes, get character
+	AND P177                / Mask off parity bit
+	SNA                     / Is it a NUL?
+	JMP I33+1               / Yes, ignore it
+	TAD C200                / Set the parity bit
+	JMP I I33               / Return the character
+XPRNT,	.-.                     / Output AC as a line number
+	TAD MZERO               / Get high bits (integer part)
+	RTL6                    / To low bits
+	AND P77                 / Mask out cruft
+	JMS PRNT                / Print integer part
+	TAD OBUFO               / Print a decimal point
+	PRINTC
+	TAD MZERO               / Now output low bits (fraction part)
+	JMS PRNT
+	TAD M140                / Get handy ASCII space equivalent
+	DCA CHAR                / and print it
+	PRINTC
+	JMP I XPRNT
+PRNT,	.-.                     / Print low line number
+	AND P177                / Force range
+	DCA VAL                 / Save in work area
+	TAD C260                / Get digit "0 for high digit
+MC200,	DCA T3
+	JMP .+3                 / Go check for < ten
+	ISZ T3                  / >= ten, increment high digit
+XYZ,	DCA VAL                 / Save partial result
+	TAD VAL                 / Get partial result
+	TAD M12                 / Subtract ten
+	SMA                     / Less than ten?
+	JMP .-5                 / No, keep subtracting
+	CLA
+	TAD T3                  / Yes, output high digit
+	PRINTC
+	TAD VAL                 / Get remainder
+	TAD C260                / Output it as low digit
+	PRINTC
+	JMP I PRNT              / Return
+OUT,	.-.                     / Print the character, and LF if needed
+	SNA                     / Character in AC?
+	TAD CHAR                / No, get it from memory
+	TAD MCR                 / Carriage return?
+	SNA
+	JMP OUTCR               / Yes, go do CR-LF
+	TAD CCR                 / No, restore character
+	JMS I OUTDEV            / Output it
+OUTX,	JMP I OUT               / Return
+OUTCR,	TAD CCR                 / get CR
+	JMS I OUTDEV            / Output it
+	TAD CLF                 / Get LF
+	JMP OUTX-1              / Go output it
+PACBUF,	.-.
+	TAD IOTX                / Is character a question mark?
+	CIA
+	TAD CHAR
+	SNA
+	TAD P40                 / Yes, adjust to encode as 37
+	TAD PCM                 / A RUBOUT (from the keyboard)?
+	SNA
+	JMP I RUBIT             / Yes, go do a rubout
+	TAD P377                / No, rebuild the character
+	DCA BDUMP               / Store it
+	TAD BDUMP               / Get character class
+	AND C140
+	TAD M140                / Is character in punctuation group?
+	SZA
+	TAD C140                / No, restore puntuation group
+	SNA CLA                 / Control character group?
+	JMP ESCA                / Yes, go encode as 77 XX
+PA1,	TAD BDUMP               / Strip character to 6 bits
+	AND P77                 / Null?
+	SZA
+	JMS PCK1                / No, store it
+PACX,	NOP                     / ODD: Why is this labelled NOP here?
+	JMP I PACBUF            / return
+ESCA,	TAD P77                 / Store 77
+	JMS PCK1
+	JMP PA1                 / and then the character
+PCK1,	.-.                     / Pack the 6-bit code in AC
+	ISZ XCTIN               / Which side?
+	JMP ROT
+	TAD M4M                 / Right, merge saved 6 bits
+	DCA I BETA              / Store and autoindex
+	DCA M4M                 / Erase saved code
+	TAD XR13                / Range check against stack pointer
+	CLL CIA
+	TAD P13                 / 13 guard words
+	TAD BETA
+	SNL CLA                 / Out of room?
+	JMP I PCK1              / No, return
+	ERROR4                  / Yes, error
+P40,	77-37                   / Adjustment for encoding "? as 37 instead of 77
+P377,	377
+C140,	140                     / ASCII character group mask
+RUBIT,	RUB1                    / Pointer to RUBOUT handler
+M140,	-140                    / ASCII punctuation group, negated
+ROT,	RTL6                    / Shift code left
+	DCA M4M                 / Remember it
+	CMA                     / Remember right side is next
+	DCA XCTIN
+	JMP I PCK1              / Return
+
+	*2600
+FXPRIN,
+SAVAC,	.-.
+SAVLK,	.-.
+MBREAK,	-203                    / Control-C, negated
+	DCA SAVAC               / Save AC
+	RAR
+EXREAD,	DCA SAVLK               / Save L
+	TSF                     / Teleprinter?
+	JMP KINT                / Nope
+	TCF                     / Dismiss the interrupt
+	DCA TELSW               / Clear device busy flag
+	TAD I OPTRI             / Get next character
+	SNA                     / or are we done?
+	JMP KINT                / Done
+EXCHEC,	TPC                     / Not done, output the character
+	DCA TELSW               / Remember the device is busy
+	DCA I OPTRI             / Remove from ring buffer
+	TAD OPTRI               / Get buffer ptr
+	IAC                     / Increment
+	AND DECKP               / Mask to stay in the ring
+RESUME,	TAD OPTR0               / Restore high bits
+T2U,	DCA OPTRI               / Store buffer ptr
+KINT,	KSF                     / Keyboard interrupt pending?
+	JMP EXIT                / Nope
+	KRB                     / Yes, get the character
+ECCR,	AND P177                / Lose the parity bit
+	SNA                     / Got a null?
+	JMP EXIT                / Yes, ignore it
+	TAD C200                / No, set parity bit
+	DCA EXASK               / Save the character
+	TAD EXASK
+SINGLE,	TAD MBREAK              / Is it Control-C?
+	SNA CLA
+	JMP RECOVR              / Yes
+	TAD SLK                 / No, Get input buffer
+	SZA CLA                 / Input buffer full?
+	ERROR4                  / Yes, choke
+	TAD EXASK               / No, move character
+	DCA SLK                 / to input buffer
+EXIT,	RSF                     / High speed reader data?
+	JMP XB-3                / Nope
+	RRB                     / Yes, read it
+	DCA HINBUF              / Store it, set ready state
+	RMF                     / Restore Memory Field
+	SMP                     / Check memory parity
+	NOP                     / ...but ignore result
+XB,	TAD SAVLK               / Restore L
+XA,	CLL RAL
+FXMOD,	TAD SAVAC               / Restore AC
+	ION                     / Enable interrupts
+EXITJ,	JMP I INTRPT            / ...and return
+EXASK,
+SIN,	.-.                     / Temp for input
+OPTR0,	IOBUF                   / Output buffer address
+OPTRO,	IOBUF                   / ENQ pointer
+OPTRI,	IOBUF                   / DEQ pointer
+XI33,	.-.
+	TAD SLK                 / Get input buffer
+	SNA SPA                 / Buffer empty?
+	JMP .-2                 / Yes, wait
+	DCA XOUTL               / No, save the character
+	DCA SLK                 / Clear input buffer
+	TAD XOUTL               / Get the character
+	JMP I XI33              / Return
+XOUTL,	.-.
+	DCA XI33                / Save character
+	ION                     / Turn on interrupts
+	TAD I OPTRO             / Output buffer full?
+	SZA CLA
+	JMP .-2                 / Yes, wait
+	IOF                     / No, disable interrupts
+	TAD TELSW               / Output in progress?
+	SZA CLA
+	JMP ERROR5-11           / Yes, enque new character
+	TAD XI33                / Get character
+	TLS                     / No, Output it now
+	DCA TELSW               / Remember the device is busy
+	JMP ERROR5-2
+	TAD XI33                / Get character
+	DCA I OPTRO             / Add to print buffer
+	TAD OPTRO               / Increment ENQ buffer ptr
+	IAC
+	AND DECKP               / Stay in buffer
+	TAD OPTR0               / Add buffer base
+	DCA OPTRO               / Save new ENQ ptr
+	ION                     / Enable interrupts
+	JMP I XOUTL             / Return
+ERROR5,	DCA ERR2                / Pretend error called from 7777
+ERR2,	.-.
+	CLA CMA                 / Get -1
+	TAD ERR2                / Get address of error call
+	DCA MZERO               / Set up to print as line number
+	ION                     / Enable interrupts
+	TAD TELSW               / TTY Output busy?
+	SZA CLA
+	JMP .-2                 / Yes, wait
+	IOF                     / No, disable interrupts
+	JMP .+3                 / Go with given error number
+RECOVR,	TAD C200                / Control-C, Get 01.00 as line number
+	DCA MZERO               / Set up to print as error number
+	ISZ TELSW               / Pretend output busy
+	TAD IBUFO               / Get -(output buffer size)
+	DCA CNTR                / Set up counter
+	CMA                     / Get -1
+	TAD OPTR0               / Point to output buffer-1
+	DCA BETA                / with autoindex register
+	NOP
+	DCA I BETA              / Zero output buffer slot
+	ISZ CNTR                / Done whole buffer?
+	JMP .-2                 / Nope, keep going
+	DCA SLK
+	TAD OPTR0               / Reset DEQ Pointer
+	DCA OPTRI
+	TAD OPTR0               / Reset ENQ Pointer
+	DCA OPTRO
+RECOVX,	CMA                     / Sent RUBOUT to TTY
+	TLS                     / (now device *is* busy)
+	TAD PCM                 / Form "?
+	PRINTC                  / Print it
+	PRNTLN                  / Print error addr as line number
+	ISZ PC                  / Point to line number
+	TAD I PC                / Get Line number
+	SNA                     / Is it zero?
+	JMP INITL-2             / Yes, don't print it
+	DCA MZERO               / Set up to print it
+	TAD PCM                 / Get "@
+	PRINTC                  / Print it
+	PRINTC                  / ?
+	PRNTLN                  / Print line number
+	TAD CCR                 / Get Carriage Return
+
+	*3000
+	PRINTC                  / Print it
+INITL,	TAD PTCH                / Reset input routine
+	DCA RDIV
+	JMP START               / and restart
+RUB1,	TAD XCTIN               / Store right next?
+	SZA CLA
+	JMP INITL4+3            / Yes, delete must be OK
+	TAD BETA                / No, at front of buffer?
+	CIA
+INITL4,	TAD TEMPT
+	SMA CLA
+	JMP I RUB5              / Yes, can't delete any more (go return)
+	TAD SPLAT               / OK to delete a character
+	PRINTC                  / Print a backslash
+	TAD BETA                / Get pointer to last encoded word
+	DCA BDUMP               / Save it in non-autoindex
+	NOP                     / ODD: Why a NOP here?
+	ISZ XCTIN               / Which side?
+	JMP RUB2                / Go delete from right side
+	TAD I BDUMP             / Get 6-bit code before last
+	AND P77                 / Is it a control code?
+	TAD OBUF1
+	SZA CLA
+	JMP RUB4                / No, just delete the character in PUTWRK
+RUB3,	CMA                     / Yes, reset PUTSDE
+	DCA XCTIN
+	CMA                     / and decrement PUTPTR one full word
+	TAD BETA
+	DCA BETA
+	TAD I BDUMP             / Get the previous code word
+	AND PCM                 / Extract the half to keep
+RUB4,	DCA M4M                 / Store it it M4M
+	JMP I RUB5              / Go return
+RUB5,	PACX                    / Pointer to PACBUF routine return
+RUB2,	TAD I BDUMP             / Check encoded word
+	AND PCM                 / Encode a control character?
+	TAD DIGITS
+BUFRSP,	SZA CLA
+M240M,	JMP RUB3+1-1            / No, go lose right half
+	DCA I BDUMP             / Yes, Clear it
+	JMP RUB3+1              / and go lose both sides
+SPLAT,	334                     / ASCII Backslash
+
+/
+/ Dump the symbol table
+/
+TDUMP,	TAD P4                  / Start with first variable
+	DCA PT1                 / Remember where we are
+	TAD PNTR                / End of variables?
+	CIA
+	TAD PT1
+	SNA CLA
+	POPJ                    / Yes, we are done
+	TAD I PT1               / No, get variable name
+	DCA OP+1                / Store in text buffer
+	TAD OP                  / Set up to unpack variable name
+	DCA TEXTP
+	DCA XCT                 / Unpack left
+	GETC                    / Get first character of variable name
+	PRINTC                  / Print it
+	GETC                    / Get and print the second character
+	PRINTC
+	GETC                    / Decode and print a "("
+	PRINTC
+	ISZ PT1                 / Point at the subscript
+	TAD I PT1               / Get the subscript
+	JMS I PRNT2             / Output as an integer
+	GETC                    / Get and print ")"
+	PRINTC
+	ISZ PT1                 / Point to variable's value
+	FINT
+	FGET I PT1              / Get it
+	FEXT
+	JMS I FOUTPU            / Print it
+	TAD CCR                 / Print CR-LF
+	PRINTC
+	TAD DTABLE              / Get variable length
+	TAD M2                  / Adjust by 2 words
+	TAD PT1                 / Form pointer to next variable
+	JMP TDUMP+1             / Go output another, if any
+PRNT2,	PRNT
+OP,	OP+1-1
+	.-.                     / Variable name goes here
+	TEXT /()/
+        *.-1
+/
+/ Terminal Output Buffer
+/
+IOBUF=.
+	*.+20                   / This is the TTY output buffer
+/
+/ Command Mode input buffer
+/
+COMEIN=.
+	*.+46                   / This is the command line input buffer
+
+/
+/ Focal program space
+/
+	*3206
+COMEOU,
+FRST,	BUFBEG
+	0000                    / Line 00.00 (Heading)
+	TEXT    'C-FOCAL,1969?M'
+	*.-1
+BUFBEG=.
+/
+/ The Focal part of the introductory dialog
+/
+BUFBEG,
+L01V10,	L01V20
+	0212                    / 01.10
+	TEXT    'T !"CONGRATULATIONS!!"?M'
+	*.-1
+L01V20,	L01V25
+	0224                    / 01.20
+	TEXT    'T  !"YOU HAVE SUCCESSFULLY LOADED '
+	*.-1
+	TEXT    "'FOCAL,1969' ON A ?M"
+	*.-1
+L01V25,	L01V26
+	0231                    / 01.25
+TEXT    "SET PDP=PDP*2^11;D 1.26;DO 1.9;DO 2; T !"
+	*.-1
+	TEXT    '"PROCEED."!!;R?M'
+	*.-1
+L01V26,	L01V27
+	0232                    / 01.26
+	TEXT    'IF (PDP-6) 1.30,1.27;T "PDP-8/L";R?M'
+	*.-1
+L01V27,	L01V30
+	0233                    / 01.27
+	TEXT    'T "PDP-12";R?M'
+	*.-1
+L01V30,	L01V40
+	0236                    / 01.30
+	TEXT    'I (PDP-5)1.4;T "LAB-8"?M'
+	*.-1
+L01V40,	L01V50
+	0250                    / 01.40
+	TEXT    'I (PDP-4)1.5;T "LINC-8?M'
+	*.-1
+L01V50,	L01V60
+	0262                    / 01.50
+	TEXT    'T "PDP-";IF (PDP-3)1.6;T "8/I"?M'
+	*.-1
+L01V60,	L01V70
+	0274                    / 01.60
+	TEXT    'IF (PDP-2)1.7;T "8?M'
+	*.-1
+L01V70,	L01V80
+	0306                    / 01.70
+	TEXT    'IF (PDP-1)1.8;T "8/S?M'
+	*.-1
+L01V80,	L01V90
+	0320                    / 01.80
+	TEXT    'IF (PDP)1.9;T "5?M'
+	*.-1
+L01V90,	L02V15
+	0332                    / 01.90
+	TEXT    'T " COMPUTER."!!?M'
+	*.-1
+L02V15,	L02V20
+	0417                    / 02.15
+TEXT    'SET XF=1?M'
+	*.-1
+L02V20,	L02V25
+	0424                    / 02.20
+	TEXT    'T !"SHALL I RETAIN "?M'
+	*.-1
+L02V25,	L02V30
+	0431                    / 02.25
+	TEXT    'T "LOG, EXP, ATN _?M'
+	*.-1
+L02V30,	L02V40
+	0436                    / 02.30
+	TEXT    'DO 10;IF (RE)2.9,2.4,2.4?M'
+	*.-1
+L02V40,	L02V50
+	0450                    / 02.40
+	TEXT    'DO 2.2;T "SINE, COSINE _";DO 10;IF (RE)2.5;R?M'
+	*.-1
+L02V50,	L02V90
+	0462                    / 02.50
+TEXT    'S XF=-1; R?M'
+	*.-1
+L02V90,	L10V40
+	0532                    / 02.90
+TEXT    'S XF=0?M'
+	*.-1
+L10V40,	L10V45
+	2450                    / 10.40
+	TEXT    'A RE;I (RE-0YES) 10.5,10.45,10.5?M'
+	*.-1
+L10V45,	L10V50
+	2455                    / 10.45
+TEXT    ' SET RE=-1;R?M'
+	*.-1
+L10V50,	L10V60
+	2462                    / 10.50
+	TEXT    'IF (RE-0NO)10.6,10.8?M'
+	*.-1
+L10V60,	L10V80
+	2474                    / 10.60
+	TEXT    'T !"PLEASE ANSWER '
+	*.-1
+	TEXT    "'YES' OR 'NO' "
+	*.-1
+	TEXT    '";G 10.4?M'
+	*.-1
+L10V80,	0000                    / Last line of program
+SAVE,	2520                    / 10.80
+TEXT    'SET RE=1;R'
+	*.-1
+	7715
+
+
+	*4370                   / Introductory dialog
+O1,	RECOVR+1
+BEGIN,	TAD .-1                 / Get Control-C handler
+	DCA START-1             / Use it for restarts
+	6142
+	DSB 3                   / Set VC8 to max brightness
+	6152
+	DCTA                    / Clear Dectape status register A
+	RRB                     / Read high speed tape buffer
+	6346
+	DTRB                    / Read DECTape status register B
+	CLA CLL
+	DCA I FLTXR             / Zero terminal output buffer
+	ISZ CNTR                / Until done
+	JMP .-2
+	TAD O2+1                / Look up/create "PD", the model variable
+	JMS LOOKUP              / Will create, so returns 0 in AC
+	TAD PDP5                / Get PDP-5 setup routine address
+	DCA 0000                / Branch there if PC is location 0
+O4,	CMA                     / Get -1
+	6167
+	CLA                     / Get 0
+	6171                    / Have LINC hardware?
+	SNA CLA
+	JMP T12                 / No, Keep looking
+ACTION,	TAD P7                  / Yes, TODO
+ONDECK,	LINC
+OFFDEC,	TAD P2
+	LINC
+	CLA
+	JMP ATES-3              / Set PD for LINC
+T12,	LINC                    / Check for LINC co-processor
+	TEXTP                   / Use LINC to complement AC
+	PDP                     / Swith back to PDP mode
+	IAC                     / Did we get -1?
+	SNA CLA                 / Got it?
+	JMP ATES-5              / Yes, it is a PDP-12
+	CLL IAC                 / Not a PDP-12, check for LAB-8
+	6344
+	6331
+	SMA CLA                 / Got LAB-8 hardware?
+	JMP BEND+4              / No, keep looking
+	TAD L8A                 / Yes, get 6313
+BEND,	DCA I L8AY              / Patch 1153 (DYL)
+	TAD L8B                 / Get 6307
+	DCA I L8AX              / Patch 1156 (DXS)
+	JMP ATES-4              / Go report LAB-8
+	CLA CLL CMA RAL RAR     /Perform model dependent instruction
+	TAD PDP8I               / Got -4002?
+	SNA CLA
+	JMP ATEI                / Yes, go check for model letter
+	CLA CLL CMA RAL         / No, compute -2 (Illegal on 8/S)
+	TAD P2                  / Did it work?
+	SNA CLA
+	JMP ATES-1              / Yes, it is a pre-model-letter PDP-8
+	TAD DLISTP              / No, Get HLT instruction
+	DCA I O6                / Fix up memory parity check
+	TAD O4                  / Get a CMA instruction
+	DCA I O5                / Set HSR timeout to 1
+	JMP ATES                / Go report PDP8/S
+PDP5X,	ISZ I O2                / We're running on a PDP-5, fix ISR
+	JMP ATES+1              / Go do Focal part
+ATEI,	TLS                     / Start the teleprinter
+G8L,	6000                    / Kill some time
+	6000
+	6000
+	6000
+	6000
+	6000
+	6000
+	6000
+	ISZ CNTR                / Bump counter
+	TSF                     / Teleprinter finished yet?
+	JMP G8L                 / No, waste time
+	TAD CNTR                / Yes, check counter
+	TAD FOUTPU              / > 2000?
+	SPA CLA
+	JMP ATES-2              / No, slow old PDP-8/I
+	ISZ I PT1               / Yes, is at least a PDP-8/L
+	ISZ I PT1               / Is at least PDP-12
+	ISZ I PT1               / Is at least LAB-8
+	ISZ I PT1               / Is at least LINC-8
+	ISZ I PT1               / Is at least PDP-8/I
+	ISZ I PT1               / Is at least PDP-8
+ATES,	ISZ I PT1               / Is at least PDP-8/S
+	TLS                     / Start teleprinter
+	ION                     / Got model, enable intterrupts
+	PUSHJ                   / Run the FOCAL part of the dialog
+	DO+1
+	IOF                     / Disable interrupts
+	TAD XF                  / Look up user's answers in variable XF
+	JMS LOOKUP
+	SNA                     / Non-zero?
+	JMP OOUT                / Zero, no functions to erase
+	SPA CLA                 / Positive?
+	TAD P2                  / No, add 2
+	TAD M5                  / form -3 or -5
+	DCA CNTR                / Store count of functions to delete
+	TAD FNPT                / Set up pointer into function dispatch table
+	DCA XRT
+	TAD ER5                 / Invalidate a function
+	DCA I XRT
+	ISZ CNTR                / until done
+	JMP .-3
+	TAD XF                  / Get XF again
+	JMS LOOKUP
+	SPA CLA                 / Delete 3 or 5 functions?
+	TAD OBUF0               / Delete 3, keep 2 pages
+	TAD BFXX                / Otherwise free up all the space
+OOUT,	TAD BFX                 / Reset stack location
+	DCA BOTTOM
+	JMP I .+1               / Erase the program and return to command mode
+	ERT
+L8A,	6313                    / DYL equivalent
+L8B,	6307                    / DXS equivalent
+L8AY,	CONTIN+4                / Pointer to FDIS DYL instruction
+L8AX,	XINT-2                  / Pointer to FDIS DXS instruction
+FNPT,	FNTARF+6-1              / Pointer to dispatch for deletable functions
+ER5,	ERROR5                  / Pointer to "No such function" error handler
+BFXX,	TGO-FEXP                / Distance from BOTTOM to first deletable function
+BFX,	FEXP-1                  / Future stack bottom, no functions deleted
+XF,	3006                    / "XF", name of dialog answer variable
+O2,	EXITJ                   / Patch location for interrupt return on PDP-5
+	2004                    / "PD", name of model variable
+O5,	HREAD+1                 / Used to adjust HSR timeout loop for the PDP-8/S
+O6,	XB-1                    / Patch location to HLT on memory parity errors
+P7,	7                       / Handy constant
+P2,	2                       / Handy constant
+PDP8I,	-3776                   / Result of CLA CLL CMA RAL RAR, negated
+PDP5,	PDP5X-1                 / Pointer to PDP-5 Initialization
+LOOKUP,	2344                    / TODO: Why is this non-zero?
+	DCA M4M                 / Store the variable name
+	PUSHJ                   / Look up the variable, without subscript
+	GS1
+	ISZ PT1                 / Point at the mantissa
+	TAD I PT1               / Get high mantissa
+	JMP I LOOKUP            / return
+
+	*4620
+
+FEXP,	TAD HORD                / E**x, positive argument?
+	SPA CLA
+	JMS I NEGP              / No, negate
+	DCA T3                  /
+	FINT
+	FMUL LG2E               / * log2(e)
+	FPUT I X2               / Store argument
+	FEXT
+	JMS I INTEGE            / Convert to integer
+	DCA FLAG2               / Save integer part of exponent
+	FINT
+	FNOR                    / Normalize
+	FPUT I XSQ2             / Save integer part
+	FGET I X2               / Get the number
+	FSUB I XSQ2             / Subtract integer part
+	FPUT I X2               / Keep only fraction part
+	FMUL I X2               / Form square
+	FPUT I XSQ2             / and save it
+	FADD DF                 / Add DF
+	FPUT TEMP               / Store
+	FGET CF                 / Get CF
+	FDIV TEMP               / Divide by result
+	FSUB I X2               / Subtract X
+	FADD AF                 / Add AF
+	FPUT TEMP               / Store
+	FGET BF                 / Get BF
+	FMUL I XSQ2             / Multiply by x squared
+	FADD TEMP               / Add to stored
+	FPUT TEMP
+	FGET I X2               / Get X
+	FDIV TEMP               / Divide by stored
+	FMUL TWO                / * 2.0
+	FADD ONE                / + 1.0
+	FEXT
+	TAD FLAG2               / Add integer part to exponent
+	TAD EXP
+	DCA EXP
+	ISZ T3                  / Need to negate?
+	RETURN                  / Nope, done
+	FINT
+	FPUT I X2               / FEXP(-x) = 1/FEXP(x)
+	FGET ONE                / Get 1.0
+	FDIV I X2               / Form reciprocal
+	FEXT
+	RETURN                  / Return
+X2,	X
+XSQ2,	XSOR
+AF,	0004
+	2372
+	1402
+BF,	7774
+	2157
+	5157
+CF,	0012
+	5454
+	0343
+DF,	0007
+	2566
+	5341
+LG2E,	0001                    / Log2(e)
+	2705
+	2435
+ONE,	0001                    / 1.0
+	2000
+	0000
+TWO,	0002                    / 2.0
+	2000
+	0000
+NEGP,	FNEG
+FLAG2,	.-.                     / Integer part of exponent
+TEMP,	0000                    / Intermediate result
+	0000
+	0000
+	0000
+ARCALG,	FINT                    / TODO Part of FATN
+	FGET I X2               / Form x squared
+	FMUL I X2
+	FPUT I XSQ2             / and store it
+	FMUL BET2               / X**2+Beta2
+	FADD BET1               / + Beta1
+	FMUL I XSQ2             / *X**2 again
+	FADD BETZ               / + Beta0
+	FPUT TEMP               / Store it
+	FGET ALF2               / Alpha2
+	FMUL I XSQ2             / * X**2
+	FADD ALF1               / + Alpha1
+	FMUL I XSQ2             / * x**2 again
+	FADD ALF1-3             / + Alpha0
+	FMUL I X2               / * X**2
+	FDIV TEMP               / Divide by Beta term
+MULTY,	FEXT
+	JMP I .+1               / go continue FATN
+	ARCRTN
+	0000                    / Alpha0
+	2437
+	1643
+ALF1,	7777                    / Alpha1
+	3304
+	4434
+ALF2,	7773                    / Alpha2
+	3306
+	5454
+BETZ,	0000                    / Beta0
+	2437
+	1646
+BET1,	0000                    / Beta1
+	2427
+	2323
+BET2,	7775                    / Beta2
+	3427
+	7052
+
+	*5000
+ARTN,	TAD HORD                / FATN, Check sign of argument
+	SPA CLA                 / Negative?
+	JMS FNEG                / Yes, Negate, return flag
+	DCA T3                  / Store negation flag
+	FINT
+	FPUT I X1               / Save argument
+	FSUB I CON1             / Subtract 1.0
+	FEXT
+	TAD HORD                / Argument > 1?
+	SPA CLA
+	JMP GO                  / No, proceed
+	FINT
+	FGET I CON1             / Yes, reciprocate X
+	FDIV I X1
+	FPUT I X1
+	FEXT
+	CLA CMA                 / Remeber we did it
+GO,	DCA FLAG1               / Save reciprocal flag
+	JMP I .+1               / Go do the work
+	ARCALG
+ARCRTN,	ISZ FLAG1               / Was argument reciprocated?
+	JMP I EXIT1             / No, Go finish up
+	FINT
+	FPUT I X1               / Subtract result from PI/2
+	FGET I PI2
+	FSUB I X1
+	FEXT
+	JMP I EXIT1             / Go restore sign and return
+EXIT1,	EXIT2
+X1,	X
+PI2,	PIOT
+CON1,	ONE
+FLOG,	TAD HORD                / FLOG, Argument zero?
+	SNA
+	ERROR4                  / Yes, error
+	SPA CLA                 / Argument positive?
+	JMS I MINSKI            / No, negate
+	FINT
+	FPUT I TEM              / Store argument as partial result
+	FSUB I CON1             / Subtract 1.0
+	FEXT
+	TAD HORD                / Zero now?
+	SNA
+	RETURN                  / Yes, we are done
+	SMA CLA                 / Argument > 1.0?
+	JMP STARTL              / Yes, Skip negate
+	FINT                    / Yes, FLOG(X) = -FLOG(1/X)
+	FGET I CON1             / Reciprocate argument
+	FDIV I TEM
+	FPUT I TEM
+	FEXT
+	CLA CMA                 / Set negation switch
+STARTL,	DCA T3                  / Store negation switch
+	TAD P13                 / Craft exponent of 11
+	DCA EXP
+	CMA                     / Subtract 1 from exponent part of X
+	TAD I TEM
+	DCA HORD                / And convert that to floating point
+	DCA LORD
+	DCA OVER2
+	IAC                     / Set X exponent to 1
+	DCA I TEM
+	FINT
+	FMUL LOG2               / Take former power of 2 * loge(2)
+	FPUT I X1               / Store it
+	FGET I TEM              / Get argument
+	FSUB I CON1             / Subtract 1.0
+	FPUT I TEM              / Store partial result
+	FMUL LOG8               / Evaluate polynomial
+	FADD LOG7
+	FMUL I TEM
+	FADD LOG6
+	FMUL I TEM
+	FADD LOG5
+	FMUL I TEM
+	FADD L4
+	FMUL I TEM
+	FADD L3
+	FMUL I TEM
+	FADD L2
+	FMUL I TEM
+	FADD L1
+	FMUL I TEM
+	FADD I X1               / Add exponent adjustment
+	FEXT
+	JMP I EXIT1             / We are done
+L1,	0000
+	3777
+	7742
+L2,	7777
+	4000
+	4100
+L3,	7777
+	2517
+	0307
+L4,	7776
+	4113
+	7211
+LOG5,	7776
+	2535
+	3301
+LOG6,	7775
+	4746                    / ODD: changed from 5466
+	0771
+LOG7,	7774
+	2236
+	4304
+LOG8,	7771
+	4544
+	1735
+TEM,	TEMP
+LOG2,	0000
+	2613
+	4414
+FLAG1,	.-.                     / FATN took the reciprocal
+FNEG,	.-.
+	JMS I MINSKI
+	CLA CMA
+	JMP I FNEG
+
+	*5200
+FCOS,	FINT                    / FCOS(X) = FSIN(PI/2-X)
+	FPUT X                  / Save argument
+	FGET PIOT               / Form PI/2-X
+	FSUB X
+	FEXT                    / Fall into FSIN
+FSIN,	TAD HORD                / Argument positive nonzero?
+	SZA SMA CLA
+	JMP MOD                 / Yes, proceed
+	TAD HORD                / Argument negative?
+	SMA CLA
+	RETURN                  / No, return FSIN(0.0)=0.0
+	JMS I MINSKI            / Yes, negate: FSIN(-X)=-FSIN(X)
+	CMA                     / Remenber to negate result
+MOD,	DCA T3                  / Store negation flag
+	FINT                    / Compute X/(2*PI)
+	FDIV TWOPI
+	FPUT XSOR               / and save it
+	FEXT
+	JMS I INTEGE            / Get integer value of result
+	FINT
+	FNOR                    / Normalize
+	FPUT X                  / Store FITR(X/(2*PI))
+	FGET XSOR               / Get X/(2*PI)
+	FSUB X                  / Get fractional part
+	FMUL TWOPI              / Get X modulo 2*PI
+	FPUT X                  / and save argument
+	FSUB PI                 / Subtract PI
+	FEXT
+	TAD HORD                / X < PI?
+	SPA CLA
+	JMP PCHECK              / Yes, proceed (Q1 or Q2)
+	FINT                    / No, FSIN(X-PI)=-FSIN(X)
+	FPUT X                  / Store X - PI
+	FEXT
+	TAD T3                  / Toggle negation flag
+	CMA
+	DCA T3
+PCHECK,	FINT                    / X < PI/2?
+	FGET X
+	FSUB PIOT               / Subtract PI/2
+	FEXT
+	TAD HORD                / Still positive?
+	SPA CLA
+	JMP PALG                / No, range adjusted
+	FINT                    / FSIN(X)=FSIN(PI-X)
+	FGET PI                 / Yes, form PI-X
+	FSUB X
+	FPUT X
+	FEXT
+PALG,	FINT                    / Now in Q1 (range 0 to PI/2)
+	FGET X
+	FDIV PIOT               / Scale 0..1
+	FPUT X
+	FMUL X                  / Square
+	FPUT XSOR               / and save
+	FGET C9                 / Constant
+	FMUL XSOR               / a*x^2
+	FADD C7                 / a*x^2+b
+	FMUL XSOR               / (a*x^2+b)x^2
+	FADD C5                 / (ax^2+b)x^2+c
+	FMUL XSOR               / ((ax^2+b)x^2+c)x^2
+	FADD C3                 / ((ax^2+b)x^2+c)x^2+d
+	FMUL XSOR               / (((ax^2+b)x^2+c)x^2+d)x^2
+	FADD PIOT               / Add PI/2
+	FMUL X                  / Multply by X
+	FEXT
+EXIT2,	ISZ T3                  / Result need negation?
+	RETURN                  / No, we are done
+	JMS I MINSKI            / Yes, do it
+	RETURN                  / We are done
+TWOPI,	0003                    / 2*PI
+	3110
+	3756
+	3235
+PI,	0002                    / PI
+	3110
+	3756
+	3235
+PIOT,	0001                    / PI/2
+	3110
+	3756
+	3235
+X,	0000                    / Saves (mangled) argument
+	0000
+	0000
+	0000
+XSOR,	0000
+	0000
+	0000
+	0000
+C9,	7764
+	2401
+	7015
+	1042
+C7,	7771
+	5464
+	5514
+	6150
+C5,	7775
+	2431
+	5361
+	4736
+C3,	0000
+	5325
+	0414
+	3167
+
+	*5400
+TGO,	.-.                     / Output the digits in the requested format
+	DCA SCOUNT              / Save digit count
+	TAD FISW                / Get format
+	RTL6                    / Get integer part
+	AND P77
+	DCA VAL                 / Save total digits
+	TAD VAL                 / Get total digits
+	CIA                     / Negate
+	SNA                     / Zero?
+	TAD MD                  / Yes, assume 6 digits
+	DCA FCOUNT              / Set up counter
+	TAD FISW                / Get format
+	SNA                     / %0.0?
+	JMP R6                  / Yes, go do scientific notation rounding
+	AND P77                 / No, get fraction digits
+	DCA DECP                / Save digits to the right
+	TAD FCOUNT              / Get -total digits
+	TAD DECP                / Add digits to the right
+	SPA                     / All digits to the right?
+	JMP .+5                 / No, proceed
+	CLA CMA                 / Yes, make that all but one
+	TAD VAL
+	DCA DECP
+	CMA                     / Add a digit
+	TAD T3                  / Get number of digits
+	SMA                     / Negative?
+	CLA                     / No, choose 0
+	TAD VAL                 / Subtract from total digits
+	SPA                     / Printing all digits?
+	JMP FPRNT-2             / Yes, no rounding needed
+	TAD MD                  / No, Compute -number being printed
+	SMA                     / Chose zero if positive
+	CLA
+R6,	TAD RND2                / Add seven, get digits to round
+	DCA BDUMP               / Save digit count
+	TAD I BUFST             / Get pointer to output buffer
+	TAD BDUMP               / Add work
+	DCA PLCE                / Store end pointer
+	TAD BDUMP               / Negate digit count
+	CIA
+	DCA BDUMP               / Set up rounding counter
+	TAD K5                  / get 5 (initial bump value)
+	ISZ I PLCE              / Increment current digit
+	TAD I PLCE              / Add digit
+	TAD OM12                / Digit > 9?
+	SPA CLA                 / Time to carry?
+	JMP FPRNT               / No, done rounding
+	DCA I PLCE              / Yes, set digit to zero
+	ISZ BDUMP               / bump count, done rounding?
+	JMP DECR                / No, Go adjust pointer and carry as needed
+	ISZ I PLCE              / Fudge carry from first digit
+	ISZ T3                  / Done a digit??
+	CLA
+FPRNT,	TAD FISW                / Get output format
+	SNA CLA                 / Scientific notation?
+	JMP FLOUT-1+1           / Yes, Go output x.xxxxx
+	TAD FCOUNT              / No, get total digits
+	TAD T3                  / Will it fit the requested format?
+	SZA SMA
+	JMP FLOUT-1             / No, go do as scientific notation
+	TAD DECP                / Add digits to the right
+	SMA                     / Still fits?
+	CLA                     / No, get a zero
+	CIA                     / subtract from digits to the right
+	TAD T3
+	CIA                     / Negate
+	DCA VAL                 / Save effective digits to the right
+BACK,	TAD T3                  / Get digits
+	TAD VAL                 / Subtract total digits
+	SNA CLA                 / Equal?
+	JMP DIG                 / Yes, go output digits and zeroes
+	TAD VAL                 / No, This ones digit or later?
+	IAC
+	SPA CLA
+	TAD IBUFO               / No, Convert '0' to space
+IN,	JMS PLCE                / Output digit
+	ISZ VAL                 / Time for the dot?
+	JMP BACK                / No, keep going
+	TAD OBUFO               / Yes, output the dot
+	PRINTC
+	JMP BACK                / Keep going
+DECR,	CMA                     / Decrement the digit pointer
+	TAD PLCE
+	DCA PLCE                / Store decremented pointer
+	JMP R6+11               / Resume rounding
+K5,	5                       / for rounding
+MD,	-6                      / Significant digits, negated
+RND2,	7                       / Significant digits + 1
+OM12,	-12                     / Negative ten
+BUFST,	SADR                    / Pointer to ptr to digit buffer
+OPUT,	OUTDG                   / Output digit routine
+DECP,	.-.                     / Digits to the right of decomal point
+SCOUNT,	0000
+FCOUNT,	.-.                     / Total digits, negated
+OUTA,
+PLCE,	.-.
+	JMS I OPUT              / Output a digit
+	ISZ FCOUNT              / Bump count
+	JMP I PLCE              / Return to output more
+	JMP I TGO               / Done with output
+DIG,	CMA                     / Decrement digits
+	TAD T3
+	DCA T3
+	ISZ SCOUNT              / Done with left??
+	JMP .+4                 / Nope, keep going with stored digits
+	CMA                     / Reset to skip again
+	DCA SCOUNT
+	JMP IN                  / Proceed with a zero
+	TAD I FLTXR             / Get next digit
+	JMP IN                  / Proceed with a real digit
+	CLA                     / Scientific notation with leading zero
+FLOUT,	JMS I OPUT              / Output a digit
+	TAD OBUFO               / Output a dot
+	PRINTC
+	ISZ TGO                 / Arrange skip return for scientific notation
+	TAD I FLTXR             / Get next digit
+	JMS PLCE                / Ouput a digit
+	ISZ SCOUNT              / Done with digits?
+	JMP .-3                 / No, keep going
+	CMA                     / Arragnge to skip again
+	DCA SCOUNT
+	JMP FLOUT+5             / Go print '0', relies on PUTNUM to return to our caller
+ABSOLV,	.-.
+	TAD HORD                / Get FAC sign bit
+	DCA SIGNF               / Remember it
+	TAD HORD                / FAC negative?
+	SPA CLA
+	JMS I MINSKI            / Yes, make it positive
+	JMP I ABSOLV            / Return
+
+	*5600
+DECONV,	.-.
+	DCA LORD                / Store/zero middle FAC
+	DCA EXP                 / Zero rest of FAC
+	DCA HORD
+	DCA OVER2
+	DCA DNUMPR              / Clear digit count
+	DCA SIGNF               / Clear sign of result
+	TAD CHAR                / Got plus sign?
+	TAD MPLUS
+	SNA
+	JMP DECON-7             / Yes, expect a digit
+	TAD M2                  / Minus sign?
+	SZA CLA
+	JMP DECON-7+1           / No, must have a digit
+	CMA                     / Remember to negate result for return
+	DCA SIGNF
+	JMS I XINPUT            / Get a digit or space
+	TAD CHAR                / Got a space?
+	TAD MSPACE
+	SNA CLA
+	JMP DECON-7             / Yes, ignore it
+	JMS DECON               / No, parse digit string
+	JMP I DECONV            / and return
+DECON,	.-.                     / Input a string of digits as a number
+	TAD CHAR                / Is the character an E?
+	TAD MINE
+	SNA CLA
+	JMP I DECON             / Yes, return
+	TESTN                   / Dot, Other, or Numeric?
+	JMP I DECON             / Dot, return
+	JMP DTST                / Other
+	TAD P17M                / Numeric, process new digit
+DSAVE,	DCA DIGIT
+	JMS MULT10
+	ISZ DNUMPR              / We have a digit
+	SZA CLA
+	ERROR4                  / Overflow during input
+	JMS I XINPUT            / Get next character
+	JMP DECON+1             / and process it
+DTST,	TAD CHAR                / Not a numeric digit
+	TAD MINUSA              / Possibly alphabetic?
+	SPA CLA
+	JMP I DECON             / No, return
+	TAD CHAR                / Yes, get character
+	TAD MINUSZ              / Alphabetic?
+	SZA SMA CLA
+	JMP I DECON             / No, return
+	TAD CHAR                / Yes, treat as digit
+	AND P77
+	JMP DSAVE
+MINE,	-"E                     / "E for scientific notation
+MINUSZ,	-"Z                     / Range check for alphabetic
+MPLUS,	-"+                     / ASCII plus sign, negated
+MSPACE,	-"                      / ASCII space, negated
+XINPUT,	INPUT                   / Get a character
+MULT10,	.-.                     / FAC = FAC*10 + Digit
+	TAD OVER2               / Copy FAC to operand
+	DCA F
+	TAD LORD
+	DCA E
+	TAD HORD
+	DCA USERNO
+	DCA REMAIN              / Clear FAC overflow
+	JMS MULT2               / *2
+	JMS MULT2               / *4
+	JMS DUBLAD              / *5
+	JMS MULT2               / *10
+	TAD DIGIT               / Set up new digit on operand
+	DCA F
+	DCA E                   / Zero mid and high mantissa
+	DCA USERNO
+	JMS DUBLAD              / Add in new digit
+	TAD REMAIN              / Get overflow
+	JMP I MULT10            / Return Overflow, if any
+REMAIN,	.-.
+DIGIT,	.-.
+DNUMPR,	0000
+MULT2,	.-.                     / Shift FAC left (double it)
+	TAD OVER2               / Get low FAC
+	CLL RAL                 / Double it
+	DCA OVER2               / Store result
+	TAD LORD                / Shift middle with carry
+	RAL
+	DCA LORD
+	TAD HORD                / Shift high with carry
+	RAL
+	DCA HORD
+	TAD REMAIN              / Shift overflow with carry
+	RAL
+	DCA REMAIN
+	JMP I MULT2             / Return
+DUBLAD,	.-.
+	CLA CLL
+	TAD OVER2               / Get FAC low
+	TAD F                   / Add operand
+	DCA OVER2               / Store result
+	RAL                     / Get carry
+	TAD LORD                / + FAC mid
+	TAD E                   / + operand mid
+	DCA LORD                / Store result
+	RAL                     / Get carry
+	TAD HORD                / + FAC high
+	TAD USERNO              / + operand high
+	DCA HORD                / Store result
+	RAL                     / Get carry
+	TAD REMAIN              / Add to overflow word
+	DCA REMAIN
+	JMP I DUBLAD            / Return
+DIV1,	.-.
+	CLA CLL
+	TAD USERNO              / Get high operand mantissa
+	SPA                     / Copy sign bit
+	CLL CML
+	RAR                     / Shift right
+	DCA USERNO
+	TAD E                   / Shift into mid-mantissa
+	RAR
+	DCA E
+	TAD F                   / and low mantissa
+	RAR
+	DCA F
+	ISZ ADDH                / Adjust exponent
+	JMP I DIV1              / Return (non-zero exponent)
+	JMP I DIV1              / Return (zero exponent)
+
+	*6000
+FLOUTP,	.-.
+	TAD PEQ                 / Print equals sign
+	PRINTC
+	TAD HORD                / FAC negative?
+	SMA CLA
+	TAD SMSP                / No, make a space
+	TAD SMIN                / Add "-
+	PRINTC                  / Print "- or space
+	JMS I ABSOL2            / Take absolute value
+FGO2,	DCA T3                  /
+	TAD EXP                 / Look at exponent
+	SPA                     / Positive?
+RFC,	JMP FGO3                / No, printing a fraction
+	SZA                     / Zero?
+	TAD LINC                / No, subtract 4
+	SNA SPA CLA             / Still >= 0?
+	JMP FGO4                / No, we have scaled the number
+	FINT
+	FMUL I PPTEN            / Multiply by 0.1
+	FEXT
+	IAC                     / Increment power of 10
+	TAD T3
+PLS,	JMP FGO2                / and try again
+FGO3,	FINT                    / Too small, scale up
+	FMUL I TENPT            / Multiply by 10
+	FEXT
+	CMA                     / Decrement power of 10
+	JMP .-6                 / and try again
+FGO4,	DCA I DPT               / Clear new digit
+	DCA I REPT
+	TAD SADR                / Set up pointer to output buffer
+	DCA FLTXR
+	TAD EXP
+	CLL CMA
+	DCA OUTDG
+	TAD DCOUNT              / -7 is the buffer size
+	DCA EXP
+	JMS I DOUBLE            / Denormalize
+	ISZ OUTDG
+	JMP .-2
+	TAD I REPT              / Any overflow bits?
+	SNA
+	JMP FGO5                / No, go do digits
+	TAD FM12                / Yes, subtract ten
+	SPA CLA                 / Positive?
+	JMP DYL+1               / No, output digit
+	IAC                     / Get a one
+DXS,	DCA I FLTXR             / Store the digit
+	ISZ EXP                 / Bump digit count
+	TAD FM12                / Subtract ten already output
+	ISZ T3                  / Bump power of 10
+DYL,	NOP
+	TAD I REPT              / Get digit from overflow area
+	ISZ T3                  / Bump power of 10
+	NOP
+	SKP                     / Store the digit
+FGO5,	JMS I H10PT             / Get next digit
+	DCA I FLTXR             / Store the digit
+	ISZ EXP                 / Bump digit count
+	JMP FGO5                / Until done seven digits
+DSB,	TAD SADR                / Reset buffer pointer
+	DCA FLTXR
+	TAD DCOUNT              / Get digit count
+	JMS I ROUND             / Output the digits
+	JMP I FLOUTP            / Return unless scientific notation
+	TAD CHRT                / Print an "E
+	PRINTC
+	TAD T3
+	SPA
+	CIA
+	DCA HORD
+	TAD T3
+	SMA CLA                 / Negative?
+	TAD M2                  / No, Set up to print "+
+	TAD SMIN                / Print "+ or "-
+	PRINTC
+	TAD HORD
+	ISZ EXP
+	TAD M144                / Subtract one-hundred
+	SMA
+	JMP .-3                 / Positive, subtract again
+	TAD C144                / Add one-hundred
+	DCA HORD                / Finished mod one-hundred
+	CMA                     / Decrement hundreds and check
+	TAD EXP
+	SZA                     / Zero hundreds?
+	JMS OUTDG               / No, output the first digit of the power
+	TAD HORD                / Get last two digits
+	JMS I PRNTI             / Print them
+	JMP I FLOUTP            / Return
+PRNTI,	PRNT                    / Print two digits
+CHRT,	"E                      / ASCII "E for scientific notation
+SMSP,	" -"-                   / ASCII space less ASCII minus sign
+PEQ,	"=                      / ASCII equal sign
+SMIN,	"-                      / ASCII minus sign
+M144,	-144                    / one hundred, negated
+C144,	144                     / one hundred
+LINC,
+M4,	-4                      / 0 < 10 < 2**4, used to rangecheck exponent
+FM12,	-12                     / -ten
+DCOUNT,	-7                      / -7, used to initialize digit counter
+PPTEN,	PTEN                    / pointer to 0.1
+DPT,	DIGIT                   / New digit holder for NXTDIG
+REPT,	REMAIN                  / High bits of NXTDIG result
+H10PT,	MULT10                  / Routine to multiply mantissa by 10
+SADR,	BUFFER-1                / Used as an output buffer
+ROUND,	TGO                     / Round and print in requested format
+TENPT,	TEN                     / Pointer to 10.0
+ABSOL2,	ABSOLV                  / Absolute value routine
+OUTDG,	.-.                     / Output AC as a digit
+	TAD C260
+	PRINTC
+	JMP I OUTDG
+
+	*6200
+FLINTP,	.-.
+	SZA CLA                 / Have first character?
+	JMS I XIN               / Input from TTY, also come here on user back-arrow
+	TAD CHAR                / Get the character
+	TAD M240                / Is it a space?
+	SNA CLA
+	JMP .-4                 / Yes, ignore it
+	JMS I DPCVPT            / No, parse a signed number
+	TAD CHAR
+	TAD MPER
+	SZA CLA
+	JMP FIGO1
+	JMS I XIN               / Get a character
+	DCA I DPN
+	JMS I DCONP             / Get string of digits
+	TAD I DPN               / Get digit count
+	CIA                     / Negate
+FIGO1,	DCA T3                  / Store division counter
+	TAD P43                 / Get decimal 35 (bit count)
+	DCA EXP                 / Set as exponent
+	JMS I RESOL5            / Get signed result
+	JMS I INORM             / Normalize
+	FINT                    / Store result
+	FPUT I PT1
+	FEXT
+	TAD CHAR                / Get character
+	TAD MINUSE              / Got "E?
+	SZA CLA
+	JMP ENDFI+3             / No, not scientific notation
+	JMS I XIN               / Yes, Get next character
+	JMS I DPCVPT            / Parse a signed number
+	JMS I RESOL5            / Get signed result
+	TAD OVER2               / Get the number as integer
+	TAD T3                  / Add our power of ten
+	DCA T3                  / Store for scaling
+ENDFI,	FINT
+	FGET I PT1              / Get the result back
+	FEXT
+	TAD T3                  / Get power of ten
+	SNA                     / Is power zero?
+	JMP I FLINTP            / Yes, just return (Also come here on user ALTMODE)
+	SMA CLA                 / Multiply or divide?
+	JMP FIGO4               / Go multiply
+	FINT                    / Divide, so multiply by 0.1
+	FMUL PTEN
+	FPUT I PT1
+	FEXT
+	IAC                     / Increment power
+	JMP TEN-3               / and set up next iteration
+FIGO4,	FINT                    / Multiply by ten
+	FMUL TEN
+	FPUT I PT1
+	FEXT
+	CMA                     / Decrement power
+	TAD T3                  / Adjust power for next loop
+	DCA T3
+	JMP ENDFI+3             / Go loop again
+TEN,	0004                    / TODO
+	2400
+	0000
+	0000
+PTEN,	7775                    / TODO
+	3146
+	3147
+	3150
+MINUSE,	-"E                     / Scientific notation indicator
+DPCVPT,	DECONV                  / Signed decimal input routine
+DCONP,	DECON                   / Unsigned decimal input routine
+RESOL5,	RESOLV                  / Copy sign to result
+DPN,	DNUMPR                  / Pointer to input routine's digit counter
+XIN,	INPUT                   / Get a character
+INORM,	DNORM                   / Normalize
+P43,	43                      / Decimal 35
+
+	*6321                   / To just fit below FPNT
+HREAD,	.-.                     / HSR Input routine
+	TAD IBUFO               / Get -20 in high timeout counter
+	DCA HSWITC
+HREAD2,	TAD HINBUF              / Check HSR input buffer
+	SMA CLA
+	JMP HSGO                / Input ready, go read it
+	ISZ VAL                 / Increment low timeout counter
+	JMP HREAD+3             / OK to try again
+	ISZ HSWITC              / Increment high timeout counter
+	JMP HREAD+3             / OK to try again
+	JMS HSWITC              / Switch back to TTY input
+	TAD XR13                / Check for command mode stack
+	TAD HTST
+	SNL CLA
+	JMP I HSWITC-1          / Yes, Return to command mode
+	ISZ XR13                / No, Pop stack
+	POPJ                    / return using stack
+	IBAR
+HSWITC,	.-.                     / Toggles between TTY and HSR
+	TAD HSPSW               / Complement the "use HSR" flag
+	CMA
+	DCA HSPSW
+	CLL CMA                 / Set input-not-ready
+	DCA HINBUF
+	TAD HSPSW               / Using HSR?
+	SZA
+	RFC                     / Yes, kick-start HSR I/O
+	SZA CLA                 / No, set up for TTY input
+	TAD RESTP               / Adjust input routine pointer
+	TAD PTCH                / for HSR or TTY
+	DCA RDIV
+	JMP I HSWITC            / Return
+HSPX,	JMS HSWITC              / Toggle to use HSR
+	JMP I .+1               / End of this command
+	PROC                    / ODD: Silly jmp to jmp
+HSGO,	CMA                     / Set input-not-ready for next time
+	DCA HINBUF
+	RRB RFC                 / Read character initiate fetch
+	AND P177                / Strip parity bit
+	SNA                     / Got leader?
+	JMP HREAD+1             / Yes, try again
+	TAD C200                / No, force parity bit on
+	DCA CHAR                / Store character
+	JMP I HREAD             / and return
+HSPSW,	0                       / Toggle for HSR or TTY
+HTST,	RTL6                    / TODO
+RESTP,	HREAD-CHIN              / Pointer adjustment to switch input routines
+
+	*6400
+FPNT,	.-.
+	CLA CLL
+	DCA OVER2
+	DCA F
+	TAD I FPNT              / Get FP Instruction
+	SNA                     / FEXT (0)?
+	JMP I FPNT              / Yes, Return
+	DCA JUMP
+	TAD JUMP
+	AND C200                / Get page bit
+	SNA CLA                 / Page bit set?
+	JMP .+3                 / No, skip page part
+	TAD OBUF0               / No, get page mask
+	AND FPNT                / Get page base
+	DCA ADDH                / Store base address
+	TAD P177                / Get offset mask
+	AND JUMP                / Get offset
+	TAD ADDH                / Add to page base
+	DCA ADDH                / Store referenced address
+	TAD INDRCT              / Get indirect bit
+	AND JUMP                / Set in the instruction?
+	SNA CLA
+	JMP .+3                 / No, skip indirection
+	TAD I ADDH              / Yes, Get referenced address
+	DCA ADDH                / and save it
+LOOP01,	ISZ FPNT                / Skip instruction on return or loop
+	CMA                     / Get -1
+	TAD ADDH                / Get pointer to operand
+	DCA FLTXR2              / Set up source autoindex
+	TAD JUMP                / Get instruction
+	CLL RTL                 / Shift for opcode bits
+	RTL
+	AND DECKP               / Mask for just opcode
+	SNA                     / Opcode 0 is GET
+	JMP FLGT                / Go do a GET
+	TAD TABLE               / Index into table
+	DCA JUMP                / Save table pointer
+	TAD I JUMP              / Get address of handler
+	SNA                     / Special entry for PUT?
+	JMP FLPT                / Yes, go do a PUT
+	DCA JUMP                / No, save handler pointer
+/ Need to fetch operand
+	TAD CEX1                / Get pointer to operand
+	DCA FLTXR               / Set up destination autoindex
+	TAD MFLT                / Get length of FP number
+	DCA CNTR                / Set up counter
+	TAD I FLTXR2            / Get next word
+	DCA I FLTXR             / Copy to operand area
+	ISZ CNTR                / Done yet?
+	JMP .-3                 / No, Keep copying
+	JMP I JUMP              / Yes, go to opcode handler
+JUMP,	.-.
+INDRCT,	400
+TABLE,	ITABLE+1-1
+FLPT,	TAD CEXP                / Get pointer to FAC
+	JMP FLGT+4              / Jump to copy loop
+FLGT,	TAD CEXP                / Set up FAC
+	DCA FLTXR2              / as destination
+	CMA                     / get pointer to operand
+	TAD ADDH
+	DCA FLTXR               / store source address
+	TAD MFLT                / Get FAC size
+	DCA CNTR                / Initialize count
+	TAD I FLTXR             / Fetch a word
+	DCA I FLTXR2            / and copy it
+	ISZ CNTR                / Done yet?
+	JMP .-3                 / No, Keep going
+	JMP FPNT+1              / Yes, on to next instruction
+CEXP,	EXP-1
+CEX1,	ADDH-1
+FLSU,	JMS I OPMINS            / Negate the operand, then ADD
+FLAD,	JMS I RAR1-1            / Attempt alignment
+	JMP FPNT+1              / Operand too small, we're done
+	JMS I ALGN              / Shift FAC right one bit
+	JMS I RAR1              / ...and operand too
+	JMS I ITABLE            / Add aligned mantissas
+NORF,	JMS I NORM              / Normalize the result in FAC
+	JMP FPNT+1              / Done, onward to next instruction
+FLEX,	TAD HORD                / Get high FAC bits
+	SZA CLA                 / FAC == 0.0?
+	JMP ZERO+5              / No, Go look at exponent
+ZERO,	DCA EXP                 / Set result to 0.0
+	DCA HORD
+	DCA LORD
+	DCA OVER2
+	JMP FPNT+1              / Done
+	PUSHF                   / Push FAC
+	EXP
+	PUSHF                   / PUSH Operand (exponent)
+	ADDH
+	POPF                    / Pop exponent
+	EXP
+	JMS I INTEGE            / Convert to integer
+	SPA                     / Negative?
+	JMP FLMY-21             / Yes, go Bail
+	CMA                     / No, negate and subract one
+	DCA JUMP                / Save counter
+	DCA F                   / Truncate low FAC bits
+	TAD HORD                / Get high mantissa
+	SZA CLA                 / FAC > 2047?
+	ERROR4                  / Yes, Bail
+	PUSHF                   / No, Push a one
+	FLTONE
+	POPF                    / Pop into FAC
+	EXP
+	POPF                    / Unstack base
+	BUFFER
+	JMP FLMY-3              / Go return one
+	PUSHF                   / Copy multiplicand
+	BUFFER
+	POPF                    / to operand
+	ADDH
+	JMS I MULT              / Multiply
+	ISZ JUMP                / Done yet?
+	JMP FLMY-10             / No, multiply again
+	JMP FPNT+1              / Yes, on to next instruction
+FLMY,	JMS I MULT              / Multiply by operand
+	JMP FPNT+1              / onward to next instruction
+OPMINS,	MINUS2
+MULT,	DMULT
+NORM,	DNORM
+	ALIGN
+RAR1,	DIV1
+ALGN,
+RAR2,	DIV2
+ITABLE,
+TRAD,	DUBLAD
+	FLAD
+	FLSU
+	FLDV
+	FLMY
+
+	*6600
+	FLEX                    / Include 0^N = 0 rule
+	0000
+	NORF
+	.-.                     / Negate floating point number
+	CLA CLL
+	TAD OVER2               / Get low mantissa
+	CIA                     / Complement, increment
+	DCA OVER2
+	TAD LORD                / Carry into mid-mantissa
+	CMA
+	SZL
+	CLL IAC
+	DCA LORD
+	TAD HORD                / Carry into high mantissa
+	CMA
+	SZL
+	CLL IAC
+	DCA HORD
+	JMP I ITABLE+10         / Return
+ALIGN,	.-.                     / Align FAC and operand for addition
+	TAD HORD                / Get FAC high mantissa
+	SNA                     / Non-zero?
+	TAD LORD                / No, check mid-mantissa
+	SNA CLA                 / Still zero?
+	JMP NOX1                / Yes, return operand (failure)
+	TAD USERNO              / Check operand high mantissa
+	SNA                     / Zero?
+	TAD E                   / Yes, check mid-mantissa
+	SNA                     / Still zero?
+	TAD F                   / Yes, check low mantissa
+	SNA CLA                 / Still zero?
+	JMP I ALIGN             / Yes, return FAC (failure)
+	TAD ADDH                / Check exponents
+	CIA
+	TAD EXP                 / Exponents equal?
+	SNA
+	JMP ADONE               / Yes, done (success)
+	DCA ITABLE+10           / No, save shift count
+	TAD ITABLE+10           / Get shift count
+	SMA                     / Form negative of absolute value
+	CIA
+	DCA AMOUNT              / Store as loop counter
+	TAD AMOUNT              / Get loop counter
+	TAD TEST2               / Range check
+	SPA CLA                 / Shift too large?
+	JMP NOX                 / Yes, fail
+	TAD ITABLE+10           / Get difference of exponents
+	SMA CLA                 / Shift FAC or operand?
+	JMP ASHFT               / Go shift operand
+	JMS DIV2                / Shift FAC
+	ISZ AMOUNT              / Done yet?
+	JMP .-2                 / No, again
+	JMP ADONE               / Yes, return success
+ASHFT,	CMA                     / Form -1
+	TAD ADDH                / Decrement operand exponent
+	DCA ADDH
+	JMS I TAG1              / Shift operand right
+	ISZ AMOUNT              / Done yet?
+	JMP .-2                 / No, again
+ACMINS,
+ADONE,	ISZ ALIGN               / Skip for success return
+	JMP I ALIGN             / Return
+NOX,	TAD ADDH                / Get operand exponent
+	SMA CLA                 / Negative?
+	JMP NOX2                / No, go check FAC
+	TAD EXP                 / Check FAC exponent
+	SMA CLA                 / Also negative?
+	JMP I ALIGN             / No, return FAC (failure)
+	JMP NOX2+2              / Both negative, go compare
+NOX2,	TAD EXP                 / FAC exponent also positive?
+	SMA CLA                 / Yes, force zero
+	TAD ITABLE+10           / No, get difference of exponents
+	SZA SMA CLA             / Operand larger than FAC?
+	JMP I ALIGN             / No, return FAC (failure)
+NOX1,	TAD ADDH                / Copy the operand exponent
+	DCA EXP
+	TAD USERNO              / Copy high mantissa
+	DCA HORD
+	TAD E                   / Copy mid-mantissa
+	DCA LORD
+	TAD F                   / and low mantissa
+	DCA OVER2
+	JMP I ALIGN             / Return (failure)
+AMOUNT,	.-.
+TAG1,	DIV1
+FIX,	.-.                     / Return the integer part of the FAC
+	JMS I ABSOL             / Get absolute value
+	TAD EXP                 / Exponent zero imlies <0.5
+	SNA SPA CLA
+	JMP FIXM                / Yes, go zero result
+	IAC                     / No, increment it
+	DCA F                   / Store as operand
+	TAD P27                 / Get 23
+	DCA ADDH                / Set as operand exponent
+	JMS ALIGN               / Align for addition
+TEST2,	27                      / Number of mantissa bits (w/o sign)
+/ (also harmless AND instruction)
+	ISZ OVER2               / Bump low FAC
+	JMP P27-4               / No carry, finish up
+	ISZ LORD                / Propogate carry
+	SKP                     / No middle carry, finish up
+	ISZ HORD                / Propogate carry
+	DCA OVER2               / Truncate low result
+	JMS I RESOL             / Restore sign of result
+	TAD LORD                / Return mid-mantissa
+	JMP I FIX
+P27,	27
+ABSOL,	ABSOLV
+RESOL,	RESOLV
+FIXM,	DCA EXP                 / Zero the FAC
+	DCA HORD
+	DCA LORD
+	JMP P27-4               / Go return
+DIV2,	.-.
+	CLA CLL
+	TAD HORD                / Get high mantissa
+DCTA,	SPA                     / Copy sign bit
+	CML
+	RAR                     / Rotate right
+	DCA HORD
+	TAD LORD                / Shift into mid-mantissa
+	RAR
+	DCA LORD
+	TAD OVER2               / and low mantissa
+DTRB,	RAR
+	DCA OVER2
+	ISZ EXP                 / Increment exponent to preserve value
+	JMP I DIV2              / Return (non-zero exponent)
+	JMP I DIV2              / Return (zero exponent)
+SPECIA,	337                     / Back Arrow
+
+	*7000
+SPL,	377                     / RUBOUT
+IAC,	212                     / Line-feed
+	375                     / ALT
+	7777                    / Terminate list
+DMULT,	.-.                     / Floating Pint Multiply Routine
+	IAC                     / Add 1
+	TAD ADDH                / Add operand exponent
+	JMS SIGN                / Compute sign of result
+	SPA CLA                 / Operand positive?
+	JMS MINUS2              / No, fix it
+	DCA MULDIV              / TODO
+	DCA MULDIV-1
+	DCA MULDIV-2
+	DCA MULDIV-3
+	TAD HORD
+	DCA I DIVIDE+1
+	TAD USERNO
+	JMS I MINUS2-1
+	2
+	TAD E
+	JMS I MINUS2-1
+	3
+	TAD LORD
+	DCA I DIVIDE+1
+	TAD USERNO
+	JMS I MINUS2-1
+	3
+	TAD E
+	JMS I MINUS2-1
+	4
+DMULT4,	JMP DMDONE
+	DCA MULDIV-5            / TODO: Is this code reachable?
+	TAD F                   / Looks like extended precision?
+	DCA I DIVIDE+1
+	TAD HORD
+	JMS I MINUS2-1
+	4
+	TAD LORD
+	JMS I MINUS2-1
+	5
+	TAD OVER2
+	DCA I DIVIDE+1
+	TAD USERNO
+	JMS I MINUS2-1
+	4
+	TAD E
+	JMS I MINUS2-1
+	5
+	TAD F
+	JMS I MINUS2-1
+	6
+DMDONE,	TAD MULDIV
+	DCA HORD
+	TAD MULDIV-1
+	DCA LORD
+	TAD MULDIV-2
+	DCA OVER2
+	JMS MULDIV
+	DCA OVER2
+	JMP I DMULT
+	*.+1
+	*.+1
+	*.+1
+	*.+1
+	*.+1
+
+MULDIV,	.-.                     / Restore sign of FAC
+DATUM,	ISZ SIGNF               / Need to negate?
+	JMS I MINSKI            / Yes, do it
+	JMS I NORMF
+	ISZ OVER2               / Round if low mantissa all ones
+	JMP I MULDIV            / No, return
+FLDV,	TAD USERNO              / Floating point divide
+	SNA CLA                 / Denominator zero?
+	ERROR4                  / Yes, report error
+	TAD ADDH                / No, get exponent
+	CIA                     / Negate
+	IAC                     / add one
+	JMS SIGN                / Adjust exponent and sign of result
+	SMA CLA                 / Operand negative?
+	JMS MINUS2              / No, negate it for subtractions
+	JMS I DIVIDE            / Do high speed divide
+	JMS MULDIV              / Restore sign of result
+	JMP I .+1               / Done, get next FP instruction
+	FPNT+1
+SIGN,	.-.                     / Update Exponent and set sign of result
+	TAD EXP                 / Adjust exponent
+	DCA EXP
+	TAD P4000               / Get sign mask
+	AND HORD                / Get FAC sign
+FINPUT,	TAD USERNO              / Add Operand sign
+	SMA CLA                 / Result negative?
+	CMA                     / No, Get -1
+	DCA SIGNF               / Set sign switch for later
+	TAD HORD                / Check FAC
+	SNA                     / Zero?
+	JMP I REVIT             / Yes, go zero result
+	SPA CLA                 / No, Positive?
+	JMS I MINSKI            / No, Fix it
+	TAD USERNO              / Check operand
+	SNA                     / Zero?
+	JMP I REVIT             / Yes, go zero result
+	JMP I SIGN              / No, return
+REVIT,	ZERO                    / Set FAC to 0.0
+NORMF,	DNORM                   / Normalize FAC
+DIVIDE,	DUBDIV                  / High speed divide
+	MP2                     / Save area for multiplicand
+	MP4                     / High speed multiply
+MINUS2,	.-.
+	CLA CLL
+	TAD F                   / Negate Low word
+	CIA
+	DCA F
+	TAD E                   / Complement middle word
+	CMA
+	SZL                     / Have a carry?
+	CLL IAC                 / Yes, do it
+	DCA E
+	TAD USERNO              / Complement high word
+	CMA
+	SZL                     / Still have a carry?
+	CLL IAC                 / Yes, do it
+	DCA USERNO
+	JMP I MINUS2            / Return
+RESOLV,	.-.
+	TAD SIGNF               / Need to negate?
+	SPA CLA
+	JMS I MINSKI            / Yes, do it
+	JMP I RESOLV            / Return
+
+	*7200
+MP4,	.-.                     / Integer high speed multiply
+	SNA                     / Multiply be zero?
+	JMP I MP4               / Yes, return
+	DCA MP1                 / Set result to multiplier
+	DCA MP5
+	TAD THIR                / Get -12 (bit count)
+	DCA MP3
+	CLL                     / No carry yet
+MP6,	TAD MP1                 / Get low answer
+	RAR                     / Shift a bit
+	DCA MP1
+	TAD MP5                 / Get high answer
+	SNL                     / Need to add multiplicand?
+	JMP .+3                 / No
+	CLL                     / Yes, Add in multiplicand
+	TAD MP2
+	RAR                     / Shift right
+	DCA MP5                 / Store high answer
+	ISZ MP3                 / Done 12 bits?
+	JMP MP6                 / No, again
+	TAD MP1                 / Get low result
+	RAR                     / Divide by 2
+	DCA MP3                 / Save for now
+	TAD I MP4               / Get argument
+	CIA                     / Negate
+	TAD DATUMA              / Compute destination pointer
+	DCA MP1                 / Save dest. pointer
+	TAD MP3                 / Get Low result/2
+	CLL
+	TAD I MP1               / Add to result
+	DCA I MP1
+	ISZ MP1                 / Bump dest. pointer
+	RAL                     / Get carry
+	TAD MP5                 / Add high result
+	TAD I MP1               / Add to result
+	DCA I MP1
+	SNL                     / More carry?
+	JMP I MP4               / No, return
+	ISZ MP1                 / Yes, bump pointer
+	ISZ I MP1               / Increment next result word
+	JMP I MP4               / No more carry, return
+	JMP .-3                 / More carry
+DATUMA,	MULDIV+1
+MP5,	.-.
+MP1,	.-.
+MP3,	.-.
+MP2,	.-.
+THIR,	-14
+MIF,	-27
+DUBDIV,	.-.                     / High speed divide
+	DCA MP4                 / Clear high order result
+	DCA MP1                 / Clear low order result
+	TAD MIF                 / Get -23
+	DCA MP3                 / Set up bit counter
+	SKP                     / Skip the shift
+DV3,	JMS I DOUBLE            / Shift FAC left
+	CLL
+	TAD E                   / Get medium order operand
+	TAD LORD                / Subtract from medium FAC
+	DCA MP2                 / Remember the difference
+	RAL                     / Get borrow
+	TAD HORD                / Add high FAC
+	TAD USERNO              / Subtract high operand
+	SNL                     / Borrow?
+	JMP DV3+15              / Yes, skip subtraction
+	DCA HORD                / Yes, store high difference
+	TAD MP2                 / Get medium difference
+	DCA LORD                / Store in FAC
+	CLA
+	TAD MP1                 / Shift low result, include new bit
+	RAL
+	DCA MP1
+	TAD MP4                 / Shift high result too
+	RAL
+	DCA MP4
+	ISZ MP3                 / Done all the bits?
+	JMP DV3                 / No, keep going
+	TAD MP1                 / Yes, copy low result to FAC
+	DCA LORD
+	TAD MP4                 / Copy high result to FAC
+	DCA HORD
+	JMP I DUBDIV            / Return
+	RAL                     / More unreachable cruft?
+	DCA DNORM
+	ISZ MP3
+	JMP DV3
+	TAD DNORM
+	DCA HORD
+	TAD MP4
+	DCA LORD
+	TAD MP1
+	DCA OVER2
+	JMP I DUBDIV
+DNORM,	.-.                     / Floating pint Normalize
+	JMS I ABSOL3            / Get absolute value
+	JMS TEST4               / Check for negative zero
+	TAD HORD                / High FAC zero?
+	SNA
+	TAD OVER2               / Yes, check low FAC
+	SNA                     / Still zero?
+ML7776,	TAD LORD                / Yes, check middle FAC
+	SNA CLA                 / Still zero?
+	JMP FXIT3               / Yes, finish up
+	TAD HORD                / Nonzero, see if we can shift
+	CLL RAL
+	SPA CLA                 / Shift hit the sign bit?
+	JMP FXIT3-3             / Yes, cant shift any more
+	JMS I DOUBLE            / Not yet, shift again
+	CLL CMA                 / Decrement exponent
+	TAD EXP
+	DCA EXP
+	JMP ML7776+3            / Loop until normalized
+	JMS I RESOL3            / Restore sign of result
+	JMS TEST4               / Check for negative zero
+	JMP I DNORM             / Return
+FXIT3,	DCA EXP                 / Normalized zero has zero exponent
+	JMP I DNORM             / Return normalized 0.0
+XRAR2,	DIV2
+TEST4,	.-.                     / Deal with negative zero
+	TAD HORD                / Get high FAC
+	SPA                     / Positive?
+	CIA                     / No, negate
+	SPA CLA                 / Positive now?
+	JMS I XRAR2             / No, Shift negative zero right
+	JMP I TEST4             / Yes, return
+ABSOL3,	ABSOLV
+RESOL3,	RESOLV
+
+/
+/ This function computes the square root of the argument.
+/
+	*7400
+XSQRT,	FINT                    / FSQT, compute the square root
+	FPUT FPAC1              / Save the argument
+HLT,	FEXT
+	TAD HORD                / Is the argument negative?
+	SPA CLA
+	ERROR4                  / Yes, choke
+	TAD EXP                 / No, is power of 2 negative?
+	SPA
+	CML                     / Yes, preserve sign
+	RAR                     / Halve power of 2 for first approximation
+	DCA BUFFER
+	SZL                     / Round?
+	ISZ BUFFER              / Yes, do it
+	NOP
+	TAD SQCON1              / Set up high mantissa for initial approximation
+	DCA BUFFER+1            / Set up rest of initial approximation
+	DCA BUFFER+2
+	DCA FPAC1-1
+	TAD FPAC1+1             / Is argument zero?
+	SNA                     /
+	TAD FPAC1+2
+	SNA CLA
+	JMP SQEND               / Yes, go return
+CLCU,	FINT
+	FGET FPAC1              / Compute Guess + N/Guess
+	FDIV BUFFER
+	FADD BUFFER
+	FEXT
+	CLA CMA                 / Get -1
+	TAD EXP                 / Divide FAC by 2
+	DCA EXP
+	TAD EXP                 / Guess = (Guess + N/Guess)/2?
+	CIA                     / Start with Exponents
+	TAD BUFFER
+	SZA CLA
+	JMP ROOTGO              / Not equal, go try again
+	TAD HORD                / High mantissas equal?
+	CIA
+	TAD BUFFER+1
+	SZA CLA
+	JMP ROOTGO              / No, try again
+	TAD LORD                / Subtract mid-mantissas
+	CIA
+	TAD BUFFER+2
+	SMA                     / Take -absolute value
+	CIA
+	IAC                     / Increment
+	SMA CLA                 / Mid-mantissas close enough?
+	RETURN                  / Yes, close enough
+ROOTGO,	FINT                    / Not quite there yet
+	FPUT BUFFER             / Store new guess
+	FEXT
+	JMP CLCU                / and go again
+SQEND,	DCA EXP                 / Return
+	RETURN
+SQCON1,	3015
+BUFFER,
+ITER1,	.-.
+	.-.
+	.-.
+	.-.
+FPAC1,	.-.
+	.-.
+	.-.
+	LIBRAR                  / ODD: This is initialized but unreferenced
+
+/
+/ The Locations command reports on the addresses of text and variables and
+/ attempts to return to the operating system.  This is used to save an image
+/ of the program using the host operating system.
+/
+	*7503
+LIBRAR,	TAD CFRS                / Output CFRS in octal
+	JMS PRNT8
+	TAD STARTV              / Output STARTV in octal
+	JMS PRNT8
+	TAD LASTV               / Output LASTV in octal
+	JMS PRNT8
+	TAD BOTTOM              / Output BOTTOM in octal
+	JMS PRNT8
+	JMP .+3                 / Go check for locs text
+	GETC                    / Get a character
+	PRINTC                  / and print it
+	TAD CHAR                / Get character
+	TAD MCR                 / Carriage return?
+	SZA CLA
+	JMP .-5                 / No, keep going
+	TAD TELSW               / Output busy?
+	SZA CLA                 / No, proceed
+	JMP .-2                 / Yes, keep waiting
+	IOF                     / Disable interrupts
+	JMP I OBUF0             / Return to monitor
+PRNT8,	.-.
+	DCA VAL                 / Save the number
+	TAD VAL                 / Get the number
+	RTL                     / Shift high octal digit into low
+	RTL
+	JMS PRINTO              / Print it
+	RTL6                    / Rotate 6 left
+	RAL                     / One more for link
+	JMS PRINTO              / Print second digit
+	RTR                     / Shift third digit down
+	RAR
+	JMS PRINTO              / Output it
+	JMS PRINTO              / Now output fourth digit
+	CLA
+	TAD CCR                 / Output a carriage return
+	PRINTC
+	JMP I PRNT8             / Return
+PRINTO,	.-.                     / Output octal digit helper
+	AND LP7                 / Mask for octal digit
+	TAD C260                / Convert to ASCII
+	PRINTC                  / Print it
+	TAD VAL                 / Get the number we're printing
+	JMP I PRINTO            / Return
+LP7,	10-1                    / Mask for single octal digit
+
+$

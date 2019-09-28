@@ -1,0 +1,2847 @@
+<html>
+
+<head>
+
+<title>PDP-8 (Programmed Data Processor) Assembly Language</title>
+
+<style type="text/css">
+
+textarea, input, select, p, table, legend
+{
+ font-family: "Lucida Console";
+
+ font-size: 11pt;
+}
+
+#code_win
+{
+ float: left;
+}
+
+#core
+{
+ float: left;
+}
+
+#code_field,#mem_disp
+{
+ width: 490px;
+ height: 640px;
+ margin: 5px;
+}
+
+td
+{
+ padding: 4px;
+}
+
+</style>
+
+</head>
+
+<body onload="InitMachine()">
+
+<!-- START : CODE WINDOW -->
+
+<div id="code_win">
+
+<fieldset id="code_field">
+
+<legend>Code</legend>
+
+<table>
+
+<tr>
+<td>PC:</td> <td><input type="text" id="pc_reg" size="10"></td>
+<td>
+ <input type="button" value="Run" onclick="runCode()">
+ <input type="button" value="Step" onclick="stepCode()">
+ <input type="button" value="Load" onclick="loadCode()">
+</td>
+</tr>
+
+<tr>
+<td>IR:</td> <td><input type="text" id="ir_reg" size="10"></td>
+<td><input type="text" id="ir_asm" size="20"></td>
+</tr>
+
+</table>
+
+<textarea id="disp_code" cols="52" rows="26" spellcheck="false"></textarea>
+
+<p>
+<input type="button" value="Load Machine Code" onclick="loadMachineCode()">
+<input type="button" value="Compile Assembly" onclick="compileAssembly()">
+<input type="button" value="Clear Code" onclick="clearCodeWin()">
+</p>
+
+</fieldset>
+
+</div>
+
+<!-- END : CODE WINDOW -->
+
+<!-- START : CORE MEMORY -->
+
+<div id="core">
+
+<fieldset id="mem_disp">
+
+<legend>Output</legend>
+
+<table>
+
+<tr>
+<td><input type="button" value="Reset Machine" onclick="clearAll()"></td>
+<td><input type="button" value="View Machine Code" onclick="viewMachineCode()"></td>
+<td><input type="button" value="Watch" onclick="dispWatch()"></td>
+</tr>
+
+<tr>
+<td>LNK: <input type="text" id="lnk_reg" size="10"></td>
+<td>ACC: <input type="text" id="acc_reg" size="10"></td>
+</tr>
+
+</table>
+
+<textarea id="txtOut" cols="52" rows="22" spellcheck="false"></textarea>
+
+<p>
+Page: 
+<input type="text" id="page_num" size="10">
+<input type="button" value="View Page" onclick="showMemPage()">
+<input type="button" value="&lt;&lt;" onclick="prevPage()">
+<input type="button" value="&gt;&gt;" onclick="nextPage()">
+</p>
+
+<p>
+Edit Memory Location:
+</p>
+
+<p>
+<input type="text" id="mem_data" size="10">
+<input type="button" value="Data --&gt; Memory" onclick="WriteToMemory()">
+<input type="text" id="mem_location" size="10">
+</p>
+
+</fieldset>
+
+</div>
+
+<!-- END : CORE MEMORY -->
+
+</body>
+
+<script type="text/javascript">
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+// global variables:
+
+var coreMemory=[];  // 4096 12-bit words
+var currPage=0;     // 32 pages x 128 words
+var link_bit=0;
+var accumulator=0;
+var instr_reg=0;
+var prog_counter=0;
+var halt_flag=0;
+var SymbolTable=[];
+var strMachineCode="";
+var bWatch=false;
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function resetMemory()
+{
+ coreMemory=[];
+
+ var i;
+
+ for(i=0;i<4096;i++) coreMemory[i]=0;
+
+ currPage=0;
+
+ document.getElementById("page_num").value=0;
+
+ strMachineCode="";
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function showMemPage()
+{
+ // show the currently selected memory page:
+
+ var page_num=document.getElementById("page_num").value;
+
+ if(page_num<0 || page_num>31)
+ { 
+  page_num=0;
+
+  document.getElementById("page_num").value=0;
+ }
+ 
+ var disp=document.getElementById("txtOut");
+
+ var page="";
+
+ var col,row;
+
+ var index;
+
+ var addr;
+
+ // each column label is an address in memory:
+
+ page="       ";
+
+ for(col=0;col<8;col++)
+ {
+  addr=page_num*128+(col*16);
+
+  page += printOctValue(addr) + " ";
+ }
+
+ page += "\r\n\r\n";
+
+ var start_index=page_num*128;
+
+ // each row label is an offset relative to the
+ // address given by the column label:
+
+ outer_loop: 
+ for(row=0;row<16;row++)
+ {
+  addr=row;
+
+  page += printOctValue(addr) + "   ";
+
+  for(col=0;col<8;col++)
+  {
+   index=start_index+row+(col*16);
+
+   if(index>=4096) break outer_loop;
+
+   page += printOctValue(coreMemory[index]) + " ";
+  }
+
+  page += "\r\n";
+ } 
+
+ disp.value=page;
+
+ bWatch=false;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function prevPage()
+{
+ // show the previous page:
+
+ var page_num=document.getElementById("page_num").value;
+
+ page_num--;
+
+ if(page_num<0) page_num=31;
+
+ document.getElementById("page_num").value=page_num;
+
+ showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function nextPage()
+{
+ // show the next page:
+
+ var page_num=document.getElementById("page_num").value;
+
+ page_num++;
+
+ if(page_num>31) page_num=0;
+
+ document.getElementById("page_num").value=page_num;
+
+ showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calcPage(addr)
+{
+ page_num = (addr-addr%0200)/0200;
+
+ document.getElementById("page_num").value=page_num;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function showRegisters()
+{
+ document.getElementById("lnk_reg").value=link_bit;
+ document.getElementById("acc_reg").value=printOctValue(accumulator);
+ document.getElementById("pc_reg").value=printOctValue(prog_counter);
+ document.getElementById("ir_reg").value=printOctValue(instr_reg);
+
+ // dis-assemble instr_reg:
+
+ printInstr(instr_reg);
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function viewMachineCode()
+{
+ // strMachineCode is generated when the assembly 
+ // code is compiled:
+
+ document.getElementById("txtOut").value=strMachineCode;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function printOctValue(val)
+{
+ // print a 12 bit word in Octal with leading 0's: 
+
+ var s=val.toString(8);
+
+ while(s.length<4)
+ {
+  s="0"+s;
+ }
+ 
+ return s;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function clearCodeWin()
+{
+ document.getElementById("disp_code").value="";
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function InitMachine()
+{
+ // init the machine:
+
+ resetMachine();
+
+ showMemPage();
+
+ clearCodeWin();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function clearAll()
+{
+ resetMachine();
+
+ showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function resetMachine()
+{
+ // reset the machine:
+
+ resetMemory();
+
+ currPage=0;
+ link_bit=0;
+ accumulator=0;
+ instr_reg=0;
+ prog_counter=0;
+
+ showRegisters();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function WriteToMemory()
+{
+ // write a value to a location in memory:
+
+ var data=parseInt(document.getElementById("mem_data").value,8);
+
+ var location=parseInt(document.getElementById("mem_location").value,8);
+
+ if(location<0 || location>=4096) return;
+
+ coreMemory[location]=data; 
+
+ // jump to the page containing the location:
+
+ var page=location >>> 7;
+
+ document.getElementById("page_num").value=page;
+
+ showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function dispWatch()
+{
+ // show the watch window:
+
+ bWatch=true;
+
+ var str_watch="";
+
+ var symbol_id;
+
+ var count=0;
+
+ for(symbol_id in SymbolTable)
+ {
+  count++;
+ }
+
+ if(count>0)
+ {
+  str_watch = "Symbol\tAddr\tC(Addr)\r\n\r\n";
+
+  for(symbol_id in SymbolTable)
+  {
+   str_watch += symbol_id + "\t";
+
+   str_watch += printOctValue(SymbolTable[symbol_id]) + "\t";
+
+   str_watch += printOctValue(coreMemory[SymbolTable[symbol_id]]) + "\r\n";
+  }
+ }
+ else
+ {
+  str_watch = "No symbols have been defined.";
+ }
+
+ document.getElementById("txtOut").value = str_watch;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function printInstr(instr)
+{
+ // dis-assemble and print the instruction:
+
+ var result="";
+
+ if(instr == 0)
+ {
+  document.getElementById("ir_asm").value = "0000: invalid instr";
+
+  return;
+ }
+
+ var opcode = instr >>> 9;
+
+ switch(opcode)
+ {
+  case 0:
+
+  result += "and ";
+
+  break;
+
+  case 1:
+
+  result += "tad ";
+
+  break;
+
+  case 2:
+
+  result += "isz ";
+
+  break;
+
+  case 3:
+
+  result += "dca ";
+
+  break;
+
+  case 4:
+
+  result += "jms ";
+
+  break;
+
+  case 5:
+
+  result += "jmp ";
+
+  break;
+
+  case 7:
+
+  if(instr == 07000) result += "nop ";
+  if(instr == 07400) result += "nop ";
+
+  if(instr & 0400)
+  {
+   if(instr & 010)
+   {
+    // reverse sense skips:
+
+    if(instr & 0100) result += "spa ";
+    if(instr & 040) result += "sna ";
+    if(instr & 020) result += "szl ";
+   }
+   else
+   {
+    if(instr & 0100) result += "sma ";
+    if(instr & 040) result += "sza ";
+    if(instr & 020) result += "snl ";
+    if(instr & 010) result += "skp ";
+   }
+
+   if((instr & 07600) == 07600) result += "cla ";
+   if((instr & 07402) == 07402) result += "hlt ";
+  }
+  else
+  {
+   if((instr & 07200) == 07200) result += "cla ";
+   if((instr & 07100) == 07100) result += "cll ";
+   if((instr & 07040) == 07040) result += "cma ";
+   if((instr & 07020) == 07020) result += "cml ";
+   if((instr & 07001) == 07001) result += "iac ";
+
+   if((instr & 02) && ((instr & 014)==0))
+   {
+    result += "bsw ";
+   }
+   
+   if((instr & 07010) == 07010)
+   {
+    if(instr & 02)  result += "rtr ";
+    else result += "rar ";
+   }
+
+   if((instr & 07004) == 07004)
+   {
+    if(instr & 02)  result += "rtl ";
+    else result += "ral ";
+   }
+  }
+
+  break;
+
+  default:
+
+  result = "unknown opcode";
+ }
+
+ if(opcode>=0 && opcode<6)
+ {
+  var ref=0;
+
+  // calc the addr referenced by the MRI
+
+  // calc the page (0 or current)
+
+  if(instr & 0200)
+  {
+   // current page - get the page number 
+   // from the program counter register
+
+   ref = (prog_counter & 07600);
+  }
+
+  // add the offset
+
+  ref += (instr & 0177);
+
+  // check for indirection
+
+  if(instr & 0400) result += "i ";
+
+  result += printOctValue(ref); 
+ }
+
+ document.getElementById("ir_asm").value = result;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function runCode()
+{
+ halt_flag=0;
+
+ // load the first instruction:
+
+ prog_counter=parseInt(document.getElementById("pc_reg").value,8);
+
+ instr_reg=coreMemory[prog_counter];
+
+ while(halt_flag==0)
+ {
+  executeInstruction();
+ }
+
+ // re-display the memory and registers
+
+ showRegisters();
+
+ showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function stepCode()
+{
+ // run the current instruction only:
+
+ // load the address of the instruction into the PC register
+
+ prog_counter=parseInt(document.getElementById("pc_reg").value,8);
+
+ // load the instruction into the IR register
+
+ instr_reg=coreMemory[prog_counter];
+
+ // execute the instruction
+
+ executeInstruction();
+
+ // re-display the memory and registers
+
+ showRegisters();
+
+ if(bWatch) dispWatch();
+ else showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function loadCode()
+{
+ // loads the instruction, but does not execute it:
+
+ // load the address of the instruction into the PC register
+
+ prog_counter=parseInt(document.getElementById("pc_reg").value,8);
+
+ // load the instruction into the IR register
+
+ instr_reg=coreMemory[prog_counter];
+
+ // re-display the registers
+
+ showRegisters();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function loadMachineCode()
+{
+ // load machine code from the code text area into memory:
+
+ resetMachine();
+
+ // break up the input from the text area into lines 
+
+ var lines=[];
+
+ var input=document.getElementById("disp_code").value;
+
+ var sol=0;
+
+ var eol=0;
+
+ var nline=0;
+
+ // search for the LF chars:
+
+ while(sol<input.length)
+ {
+  eol=input.indexOf("\n",sol);
+
+  if(eol > -1)
+  {
+   lines[nline]=input.substr(sol,eol-sol);
+
+   sol=eol+1;
+
+   // if the CR chars are also present:
+
+   lines[nline]=lines[nline].replace("\r"," "); 
+
+   nline++;
+  }
+  else
+  {
+   // the last line might not be terminated by a LF:
+
+   eol=input.length;
+
+   if(eol>sol)
+   {
+    lines[nline]=input.substr(sol,eol-sol);
+
+    // if the CR chars are also present:
+
+    lines[nline]=lines[nline].replace("\r"," "); 
+
+    nline++;
+   } 
+
+   break;
+  }
+ }
+
+ // now process the lines:
+
+ // instructions will be loaded into memory starting from 0200
+ // unless the machine code specifies otherwise
+
+ var currAddr=0200;
+
+ var i;
+
+ var tmp_arr=[];
+
+ // check each line against the following patterns:
+
+ // 1: n(nnn) n(nnn) - a location in memory and it's contents
+ // 2: n(nnn) - contents of the current memory location
+ // 3: *n(nnn) - set the current memory location
+ // 4: $n(nnn) - set the program counter
+
+ var pattern_1 = /^\s{0,}\d{1,4}\s{1,}\d{1,4}\s{0,}$/;
+
+ var pattern_2 = /^\s{0,}\d{1,4}\s{0,}$/;
+
+ var pattern_3 = /^\s{0,}\052\d{1,4}\s{0,}$/;
+
+ var pattern_4 = /^\s{0,}\044\d{1,4}\s{0,}$/;
+
+ var rgp=/\d{1,4}/g;
+
+ for(i=0;i<nline;i++)
+ {
+  if(pattern_1.test(lines[i]))
+  {
+   tmp_arr=lines[i].match(rgp);
+
+   currAddr=parseInt(tmp_arr[0],8);
+
+   coreMemory[currAddr]=parseInt(tmp_arr[1],8);
+
+   currAddr++;
+  }
+  else if(pattern_2.test(lines[i]))
+  {
+   coreMemory[currAddr]=parseInt(lines[i],8);
+
+   currAddr++;
+  }
+  else if(pattern_3.test(lines[i]))
+  {
+   tmp_arr=lines[i].match(rgp);
+
+   currAddr=parseInt(tmp_arr[0],8);
+  }
+  else if(pattern_4.test(lines[i]))
+  {
+   tmp_arr=lines[i].match(rgp);
+
+   prog_counter=parseInt(tmp_arr[0],8);
+   instr_reg=coreMemory[prog_counter];
+  }
+ }
+
+ // re-display the memory and registers
+
+ showRegisters();
+
+ calcPage(prog_counter);
+
+ showMemPage();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function compileAssembly()
+{
+ // compile assembly code to machine code:
+
+ resetMachine();
+
+ // break up the input from the text area into a lines array: 
+
+ var lines=[];
+
+ var input=document.getElementById("disp_code").value;
+
+ // first remove all the comments and
+ // replace all the CRLFs with ';'
+
+ var ptn_comments = /\057[^\n]{0,}(\n|\n\r|$)/g;
+
+ var ptn_2xSC = /;\s{0,};/g;
+
+ var ptn_crlf = /(\n|\n\r)/g;
+
+ // throw away any comments:
+
+ input = input.replace(ptn_comments,";");
+
+ // replace ant CRLFs:
+
+ input = input.replace(ptn_crlf,";");
+
+ // remove empty lines:
+
+ input = input.replace(ptn_2xSC,";");
+
+ // now break the input up into separate lines,
+ // which are now delimited by the ';'
+
+ var ptn_line = /[^;]{1,}(;|$)/g;
+
+ lines = input.match(ptn_line);
+
+ if(lines==null)
+ {
+  document.getElementById("txtOut").value = "Error: null input - cannot compile!";
+ }
+
+ // remove the ';' chars:
+
+ var i;
+
+ for(i=0;i < lines.length;i++) lines[i] = lines[i].replace(";","");
+
+ // now process the lines:
+
+ if(doPass_1(lines)) doPass_2(lines);
+
+ // re-display the registers
+
+ showRegisters();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function doPass_1(lines)
+{
+ var bErrorFlag=false;
+
+ // COMPILE: Pass 1
+
+ var result = "COMPILE: Pass 1\r\n\r\n";
+
+ // Look for tags/labels (symbols) and build the symbol table:
+
+ SymbolTable=[];
+
+ var symbol_id;
+
+ var tmp_str;
+
+ var tmp_arr=[];
+
+ var pos;
+
+ var currAddr=0; // current addr counter
+
+ var ptn_symbol=/^\s{0,}[a-zA-Z][a-zA-Z0-9]{0,},/;
+ var ptn_inv_symbol=/^\s{0,}([0-9][a-zA-Z0-9]{0,}|.{0,}[^0-9a-zA-Z]),/;
+ var ptn_empty = /^\s{0,}$/;
+ var ptn_setOrigin = /^\s{0,}\052\s{0,}\d{1,4}\s{0,}$/;
+ var ptn_setPage = /^\s{0,}page\s{1,}\d{0,2}\s{0,}$/i;
+ var ptn_data = /^\s{0,}\d{1,4}\s{0,}$/;
+ var ptn_expr1 = /[=\056\055\053]{1,}/;
+ var ptn_expr2 = /^\s{0,}[a-zA-Z][a-zA-Z0-9]{0,}\s{0,}$/;
+ var ptn_mri=/^\s{0,}(and|tad|isz|dca|jmp|jms)\s/i;
+ var ptn_g1_opr=/^\s{0,}(nop|cla|cll|cma|cml|iac|rar|ral|rtr|rtl|bsw|cia|stl|sta|glk)(\s{1,}|$)/i;
+ var ptn_g2_opr=/^\s{0,}(skp|sma|sza|snl|spa|sna|szl|hlt)(\s{1,}|$)/i;
+ var ptn_stop = /^\s{0,}\044/;
+ var ptn_sc_del = /[^\s,]{1,}/;
+
+ var bMatchFound;
+
+ var i;
+
+ for(i=0;i < lines.length;i++)
+ {
+  bMatchFound=false;
+
+  // just continue if the line is empty:
+
+  if(ptn_empty.test(lines[i])) continue;
+
+  // stop (break) if the line starts with '$': 
+
+  if(ptn_stop.test(lines[i]))
+  {
+   bMatchFound=true;
+
+   break;
+  }
+
+  // look for any invalid tags, that start with a number
+  // or which contains non-alphanumeric chars:
+
+  if(ptn_inv_symbol.test(lines[i]))
+  {
+   bErrorFlag=true;
+
+   result += "ERROR - invalid label in the line: " + lines[i] + "\r\n";
+
+   break;
+  }
+
+  // find any valid tags/labels and add them to the symbol table:
+
+  if(ptn_symbol.test(lines[i]))
+  {
+   tmp_arr=lines[i].match(ptn_sc_del);
+
+   tmp_str=tmp_arr[0];
+
+   if(tmp_str.length > 6) tmp_str=tmp_str.slice(0,6);
+
+   if(tmp_str.length>0)
+   {
+    symbol_id=tmp_str;
+
+    // check for duplicate labels i.e. the label is already
+    // in the symbol table:
+
+    if(SymbolTable.hasOwnProperty(symbol_id))
+    {
+     bErrorFlag=true;
+
+     result += "ERROR - duplicate label in the line: " + lines[i] + "\r\n";
+
+     break;
+    }
+    else
+    {
+     SymbolTable[symbol_id]=currAddr; // add to the symbol table
+
+     // strip the label from the code:
+
+     lines[i] = lines[i].replace(ptn_symbol,"");
+    } 
+   }
+
+   // increment the address counter and continue:
+
+   currAddr++;
+
+   continue;
+  }
+
+  // determine whether to increment the currAddr:
+
+  // line must contain a valid instruction or data,
+  // not a directive or comment
+
+  if(ptn_setOrigin.test(lines[i]))
+  {
+   // the line contains a set origin directive: * n(nnn)
+
+   bMatchFound=true;
+
+   var ptn_addr = /\d{1,4}/;
+
+   tmp_arr=lines[i].match(ptn_addr);
+
+   tmp_str=tmp_arr[0];
+
+   if(tmp_str.length > 0)
+   {
+    // set the current address:
+
+    currAddr=parseInt(tmp_str,8);
+   }
+
+   continue;
+  }
+
+  // if the line contains a page directive:
+
+  if(ptn_setPage.test(lines[i]))
+  {
+   bMatchFound=true;
+
+   var ptn_pgnum = /\d{1,2}/;
+
+   tmp_arr=lines[i].match(ptn_pgnum);
+
+   tmp_str=tmp_arr[0];
+
+   var npage=0;
+
+   if(tmp_str.length > 0)
+   {
+    // set the current address:
+
+    npage=parseInt(tmp_str,8);
+
+    if(npage>=0 && npage<32) currAddr = 128*npage;
+   }
+   else
+   {
+    npage = currAddr & 07600;
+
+    npage >>>= 7;
+
+    npage += 1;
+
+    if(npage >= 32) npage = 0;
+
+    currAddr = 128*npage;
+   }
+
+   continue;
+  }
+
+  // if the line contains data: n(nnn)
+
+  if(ptn_data.test(lines[i]))
+  {
+   bMatchFound=true;
+
+   currAddr++;
+
+   continue;
+  }
+
+  // if the line contains an MRI instruction:
+
+  if(ptn_mri.test(lines[i]))
+  {
+   bMatchFound=true;
+
+   currAddr++;
+
+   continue;
+  }
+
+  // if the line contains an OPR instruction:
+
+  if(ptn_g1_opr.test(lines[i]) || ptn_g2_opr.test(lines[i]))
+  {
+   bMatchFound=true;
+
+   currAddr++;
+
+   continue;
+  }
+
+  // if the line contains an expression:
+
+  if(ptn_expr1.test(lines[i]) || ptn_expr2.test(lines[i]))
+  {
+   bMatchFound=true;
+
+   if(lines[i].indexOf("=") == -1)
+   {
+    currAddr++;
+   }
+   else
+   {
+    // if the expression contains an "=", check if the 
+    // symbol(s) to the left are in the symbol table
+    // if not, add them:
+
+    var e_flag=extractSymbols(lines[i]);
+
+    if(e_flag==077777)
+    {
+     bErrorFlag=true;
+
+     result += "ERROR - invalid expression in the line: " + lines[i] + "\r\n";
+
+     break;
+    }
+   }
+
+   continue;
+  }
+
+  if(bMatchFound==false)
+  {
+   bErrorFlag=true;
+
+   result += "ERROR - invalid assembly code in the line: " + lines[i] + "\r\n";
+
+   break;
+  }
+ }
+
+ // print the symbol table:
+
+ if(bErrorFlag==false)
+ {
+  result += "Symbol Table:\r\n\r\n";
+
+  for(symbol_id in SymbolTable)
+  {
+   result += symbol_id + "\t" + printOctValue(SymbolTable[symbol_id]) + "\r\n";   
+  }
+ }
+ else
+ {
+  result += "Pass 1 - STOPPED" + "\r\n";
+ } 
+
+ document.getElementById("txtOut").value = result;
+
+ return !(bErrorFlag);
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function doPass_2(lines)
+{
+ var bErrorFlag=false;
+
+ // COMPILE: Pass 2
+
+ var result = "COMPILE: Pass 2\r\n\r\n";
+
+ // Generate Machine Code:
+
+ var currAddr=0; // current addr counter
+
+ var tmp_str;
+
+ var tmp_arr=[];
+
+ var val;
+
+ var opcode;
+
+ var op_addr;
+
+ var mcode;
+
+ strMachineCode="";
+
+ var ptn_empty = /^\s{0,}$/;
+ var ptn_stop = /^\s{0,}\044/;
+ var ptn_not_stop = /[^\044\s]{1,}/;
+ var ptn_addr = /\d{1,4}/;
+ var ptn_setOrigin = /^\s{0,}\052\s{0,}\d{1,4}\s{0,}$/;
+ var ptn_setPage = /^\s{0,}page\s{0,}\d{0,2}\s{0,}$/i;
+ var ptn_data = /^\s{0,}\d{1,4}\s{0,}$/;
+ var ptn_expr1 = /[=\056\055\053]{1,}/;
+ var ptn_expr2 = /^\s{0,}[a-zA-Z][a-zA-Z0-9]{0,}\s{0,}$/;
+ var ptn_g1_opr=/\s{0,}(nop|cla|cll|cma|cml|iac|rar|ral|rtr|rtl|bsw|cia|stl|sta|glk)(\s{1,}|$)/i;
+ var ptn_g2_opr=/\s{0,}(skp|sma|sza|snl|spa|sna|szl|hlt)(\s{1,}|$)/i;
+ var ptn_mri=/^\s{0,}(and|tad|isz|dca|jms|jmp)\s{1,}/i;
+ var ptn_space_del = /[^\s]{1,}/ig;
+
+ var i;
+
+ var bMatchFound;
+
+ for(i=0;i < lines.length;i++)
+ {
+  bMatchFound=false;
+
+  // just continue if the line is empty:
+
+  if(ptn_empty.test(lines[i])) continue;
+
+  // if the line contains the stop directive: $(nnnn) or $symbol
+
+  if(ptn_stop.test(lines[i]))
+  {
+   // set the default program counter:
+
+   prog_counter=0200;
+
+   instr_reg = coreMemory[prog_counter];
+
+   tmp_arr=lines[i].match(ptn_not_stop);
+
+   if(tmp_arr) tmp_str=tmp_arr[0];
+   else tmp_str="";
+
+   if(tmp_str.length > 0)
+   {
+    // there is an address or symbol:
+
+    val=calcValue(tmp_str);
+
+    if(val==077777)
+    {
+     // Error : unknown symbol
+
+     bErrorFlag=true;
+
+     result += "ERROR - unknown symbol in the line: " + lines[i] + "\r\n";
+
+     break;
+    }
+    else
+    {
+     prog_counter=val;
+
+     instr_reg = coreMemory[prog_counter];
+   
+     // write to the output:
+
+     strMachineCode += "$" + prog_counter.toString(8) + "\r\n";
+    }
+   }
+   
+   bMatchFound=true;
+
+   break;
+  }
+
+  // if the line contains a set origin directive: * n(nnn)
+
+  if(ptn_setOrigin.test(lines[i]))
+  {
+   tmp_arr=lines[i].match(ptn_addr);
+
+   if(tmp_arr) tmp_str=tmp_arr[0];
+   else tmp_str="";
+
+   if(tmp_str.length > 0)
+   {
+    // set the current address:
+
+    currAddr=parseInt(tmp_str,8);
+   
+    // write to the output:
+
+    strMachineCode += "*" + currAddr.toString(8) + "\r\n";
+   }
+
+   continue;
+  }
+
+  // if the line contains a page directive:
+
+  if(ptn_setPage.test(lines[i]))
+  {
+   var ptn_pgnum = /\d{1,2}/;
+
+   tmp_arr=lines[i].match(ptn_pgnum);
+
+   if(tmp_arr) tmp_str=tmp_arr[0];
+   else tmp_str="";
+
+   var npage=0;
+
+   if(tmp_str.length > 0)
+   {
+    // set the current address:
+
+    npage=parseInt(tmp_str,8);
+
+    if(npage>=0 && npage<32) currAddr = 128*npage;
+   }
+   else
+   {
+    npage = currAddr & 07600;
+
+    npage >>>= 7;
+
+    npage += 1;
+
+    if(npage >= 32) npage = 0;
+
+    currAddr = 128*npage;
+   }
+
+   // write to the output:
+
+   strMachineCode += "*" + currAddr.toString(8) + "\r\n";
+
+   continue;
+  }
+
+  // if the line contains data only: n(nnn)
+
+  if(ptn_data.test(lines[i]))
+  { 
+   var ptn_dt = /\d{1,4}/;
+
+   tmp_arr=lines[i].match(ptn_dt);
+
+   if(tmp_arr) tmp_str=tmp_arr[0];
+   else tmp_str="";
+
+   if(tmp_str.length > 0)
+   {
+    // put the data in memory:
+
+    coreMemory[currAddr]=parseInt(tmp_str,8);
+   
+    // write to the output:
+
+    strMachineCode += printOctValue(coreMemory[currAddr]) + "\r\n";
+   }
+
+   currAddr++;
+
+   continue;
+  }
+
+  // if the line contains an MRI instruction:
+
+  if(ptn_mri.test(lines[i]))
+  {
+   tmp_arr = lines[i].match(ptn_space_del);
+
+   opcode=999;
+
+   if(tmp_arr[0].toLowerCase()=="and") opcode=0;
+   else if(tmp_arr[0].toLowerCase()=="tad") opcode=1;
+   else if(tmp_arr[0].toLowerCase()=="isz") opcode=2;
+   else if(tmp_arr[0].toLowerCase()=="dca") opcode=3;
+   else if(tmp_arr[0].toLowerCase()=="jms") opcode=4;
+   else if(tmp_arr[0].toLowerCase()=="jmp") opcode=5;
+
+   if(opcode >= 0 && opcode < 6) // check_op_code:
+   {
+    if(tmp_arr.length==1)
+    {
+     // Error : instr does not reference a memory location:
+
+     bErrorFlag=true;
+
+     result += "ERROR - MRI does not reference a memory location, in the line: " + lines[i] + "\r\n";
+
+     break;
+    }
+
+    var bIndirect=false;
+
+    if(tmp_arr[1].toLowerCase()=="i") bIndirect=true;
+
+    if(bIndirect) tmp_arr=tmp_arr.slice(2);
+    else tmp_arr=tmp_arr.slice(1);
+
+    tmp_str="";
+
+    if(tmp_arr.length>=1) tmp_str = tmp_arr.join("");   
+
+    if(tmp_str.length>0)
+    {
+     op_addr=calcOpAddr(tmp_str,currAddr);
+    }
+    else op_addr=077777;
+
+    if(op_addr==077777)
+    {
+     // Error : unknown symbol
+
+     bErrorFlag=true;
+
+     result += "ERROR - cannot evaluate offset address expression in the line: " + lines[i] + "\r\n";
+
+     break;
+    }
+
+    mcode = GenerateInstrCode(opcode,bIndirect,op_addr,currAddr);
+
+    if(mcode > 0)
+    {
+     // put the instruction in memory:
+
+     coreMemory[currAddr] = mcode;
+
+     // write to the output:
+
+     strMachineCode += printOctValue(mcode) + "\r\n";
+
+     currAddr++;
+
+     bMatchFound=true;
+    }
+    else
+    {
+     // out of page reference error:
+
+     bErrorFlag=true;
+
+     result += "ERROR - illegal out of page reference in the line: " + lines[i] + "\r\n";
+   
+     break;
+    }
+   } // END: check_op_code
+   else
+   {
+    // error:
+
+    bErrorFlag=true;
+
+    result += "ERROR - unknown opcode in the line: " + lines[i] + "\r\n";
+
+    break;
+   }
+
+   continue;
+  }
+
+  if(ptn_g1_opr.test(lines[i]) || ptn_g2_opr.test(lines[i]))
+  {
+   // if the line contains Group 1 or 2 OPR instructions:
+
+   mcode = Generate_g1_opr_code(lines[i]);
+
+   if(mcode==0) mcode = Generate_g2_opr_code(lines[i]);
+
+   if(mcode > 0)
+   {
+    // put the instruction in memory:
+
+    coreMemory[currAddr] = mcode;
+
+    // write to the output:
+
+    strMachineCode += printOctValue(mcode) + "\r\n";
+
+    currAddr++;
+
+    bMatchFound=true;
+   }
+   else
+   {
+    // error:
+
+    bErrorFlag=true;
+
+    result += "ERROR - the line contains incompatible or unknown instructions: " + lines[i] + "\r\n";
+
+    break;
+   }
+
+   continue;
+  }
+
+  // if the lines contains some kind of expression or symbol:
+
+  if(ptn_expr1.test(lines[i]) || ptn_expr2.test(lines[i]))
+  {
+   var ptn_symbol=/^\s{0,}[a-zA-Z][a-zA-Z0-9]{0,}\s{0,}$/;
+
+   var bExprSolved=false;
+
+   if(/=+/.test(lines[i]))
+   {
+    // if the expression contains an equals sign, no code is generated
+    // and the address counter is not incremented:
+
+    // the function will just update the symbol table:
+
+    val=calcExpression(lines[i],currAddr);
+
+    if(val==077777) // error code:
+    {
+     // Error : unknown symbol
+
+     bErrorFlag=true;
+
+     result += "ERROR - unknown expression or symbol in the line: " + lines[i] + "\r\n";
+
+     break;
+    }
+   }
+
+   // the line just contains a symbol, with no +,- or = operators:
+
+   if(ptn_symbol.test(lines[i]))
+   {
+    // get the value from the symbol table:
+
+    tmp_arr = lines[i].match(/[a-zA-Z][a-zA-Z0-9]{0,}/);
+
+    if(tmp_arr)
+    {
+     tmp_str=tmp_arr[0];
+
+     if(tmp_str.length > 6) tmp_str.slice(0,6);
+
+     if(TestSymbol(tmp_str))
+     {
+      val = SymbolTable[tmp_str];
+
+      bExprSolved=true;
+     }
+    }
+   }
+   else
+   {
+    // an expression that can include numbers, symbols and (+,-,=) operators:
+
+    // evaluate the expression:
+
+    val=calcExpression(lines[i],currAddr);
+    
+    if(val!=077777) // error code:
+    {
+     bExprSolved=true;
+    }
+   }
+
+   if(bExprSolved)
+   {
+    // put the data value in memory:
+
+    coreMemory[currAddr] = val;
+
+    // write to the output:
+
+    strMachineCode += printOctValue(val) + "\r\n";
+
+    currAddr++;
+
+    bMatchFound=true;
+   }
+   else
+   {
+    // Error : unknown symbol
+
+    bErrorFlag=true;
+
+    result += "ERROR - cannot evaluate the expression in the line: " + lines[i] + "\r\n";
+
+    break;
+   }
+
+   continue;
+  }
+
+  // if the code falls through to here, then the line matches none of the patterns:
+
+  if(bMatchFound==false)
+  {
+   // error:
+
+   bErrorFlag=true;
+
+   result += "ERROR - the line does not contain valid code: " + lines[i] + "\r\n";
+
+   break;
+  }
+ }
+
+ if(bErrorFlag)
+ {
+  result += "Pass 2 - STOPPED" + "\r\n\r\n";
+ }
+ else
+ {
+  result += strMachineCode + "\r\n";
+
+  result += "Symbol Table:\r\n\r\n";
+
+  for(var symbol_id in SymbolTable)
+  {
+   result += symbol_id + "\t" + printOctValue(SymbolTable[symbol_id]) + "\r\n";   
+  }
+
+  result += "\r\n";
+ }
+
+ tmp_str = document.getElementById("txtOut").value;
+
+ result += tmp_str;
+
+ document.getElementById("txtOut").value = result;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calcValue(expr)
+{
+ // for $expr:
+
+ // get the value of expr - it is either a number or a symbol:
+
+ if(/^\d{1,4}$/.test(expr))
+ {
+  // the expression is just a numerical value:
+
+  return parseInt(expr,8);
+ }
+
+ var result=077777; // error code
+
+ // the expression is probably a symbol:
+
+ var tmp_str=expr;
+
+ if(tmp_str.length > 6) tmp_str=tmp_str.slice(0,6);
+
+ // test against the symbols list pattern:
+
+ if(TestSymbol(tmp_str))
+ {
+  result = SymbolTable[tmp_str];
+ }
+
+ return result;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calcExpression(expr,currAddr)
+{
+ // evaluate the expression that might contain numbers,
+ // symbols or operators (+,-,=):
+
+ // ascii 053 = '+'
+ // ascii 055 = '-'
+
+ if(expr.indexOf(".") > -1)
+ {
+  // replace any dots ('.') with the current address:
+
+  expr = expr.replace(".",currAddr.toString(8));
+ }
+
+ var result=077777; // error code
+
+ var tmp_arr=[];
+
+ var ptn_terms = /[=\053\055]{0,2}(\d{1,4}|[a-zA-Z][a-zA-Z0-9]{0,})/g;
+
+ tmp_arr = expr.match(ptn_terms); // extract the terms in the expression
+
+ var tmp_str;
+
+ var i;
+
+ var val;
+
+ var bAssign=false;
+
+ if(tmp_arr)
+ {
+  result=0;
+
+  for(i=tmp_arr.length-1;i>=0;i--)
+  {
+   tmp_str=tmp_arr[i];
+
+   if(tmp_str.charAt(0)=='-' || tmp_str.charAt(0)=='+' || tmp_str.charAt(0)=='=')
+   { 
+    tmp_str=tmp_str.slice(1);
+   }
+
+   if(tmp_str.charAt(0)=='-')
+   { 
+    tmp_str=tmp_str.slice(1);
+   }
+
+   if(/^\d{1,4}$/.test(tmp_str))
+   {
+    // the term is a number:
+
+    val=parseInt(tmp_str,8);
+
+    if(tmp_arr[i].charAt(0)=='-' || tmp_arr[i].charAt(1)=='-') result -= val;
+    else result += val;
+
+    if(tmp_arr[i].charAt(0)=='=') bAssign=true;
+   }
+   else
+   {
+    // the term is a symbol:
+
+    if(tmp_str.length > 6) tmp_str=tmp_str.slice(0,6);
+
+    if(TestSymbol(tmp_str))
+    {
+     if(bAssign)
+     {
+      if(result<0) result=calc2sComplement(result);
+
+      SymbolTable[tmp_str]=result;
+     }
+     else
+     {
+      val = SymbolTable[tmp_str];
+
+      if(tmp_arr[i].charAt(0)=='-' || tmp_arr[i].charAt(1)=='-') result -= val;
+      else result += val;
+
+      if(tmp_arr[i].charAt(0)=='=')
+      {
+       bAssign=true;
+      }
+     }
+    }
+    else
+    {
+     return 077777; // error code
+    }
+   }
+  }  
+ }
+
+ if(result<0) result=calc2sComplement(result);
+
+ return result;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function extractSymbols(expr)
+{
+ var err_code=077777; // error code
+
+ // pull out all terms of the form: "symb="
+ // i.e. can have: A=B=C=...
+
+ var ptn_eq = /[^=\s]{1,}=/g;
+
+ if(ptn_eq.test(expr))
+ {
+  var tmp_arr=expr.match(ptn_eq);
+
+  if(tmp_arr)
+  {
+   err_code=0;
+
+   var i;
+
+   var tmp_str;
+ 
+   for(i=0;i<tmp_arr.length;i++)
+   {
+    tmp_str=tmp_arr[i];
+
+    // get rid of the '=':  
+ 
+    tmp_str=tmp_str.slice(0,tmp_str.length-1);
+
+    // truncate length to <= 6:
+
+    if(tmp_str.length > 6) tmp_str.slice(0,6);
+
+    if(tmp_str.length==0)
+    {
+     err_code=077777;
+
+     break;
+    }
+
+    if(TestSymbol(tmp_str)==false)
+    {
+     // add to the symbol table:
+
+     SymbolTable[tmp_str]=0;
+    }
+   }
+  }
+ }
+
+ return err_code;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calc2sComplement(val)
+{
+ // calc the 2's complement of abs(val):
+
+ if(val==0) return 0;
+
+ if(val<0) val*=-1;
+
+ var twos_comp = (~val & 07777)+1;
+
+ return twos_comp; 
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calcOpAddr(expr,currAddr)
+{
+ // evaluate the expression in the MRI assembler line
+ // that gives the offset address:
+
+ if(/^\d{1,4}$/.test(expr))
+ {
+  // the expression is just a numerical value:
+
+  return parseInt(expr,8);
+ }
+
+ var op_addr=077777; // error code
+
+ var tmp_arr=[];
+
+ var tmp_str;
+
+ var bPlus;
+
+ var ptn_dot=/^\056((\053|\055)\d{1,4}$|$)/;
+
+ if(ptn_dot.test(expr))
+ {
+  // the expression is of the form: .(+ or -)n(nnn)
+  // i.e. the current location plus/minus an offset:
+
+  tmp_str=expr;
+
+  if(tmp_str==".")
+  {
+   op_addr = currAddr;
+  }
+  else
+  {
+   bPlus=true;
+
+   if(tmp_str.indexOf("-") > -1) bPlus=false;
+
+   tmp_str=tmp_str.slice(2);
+
+   op_addr=parseInt(tmp_str,8);
+
+   if(bPlus==false) op_addr *= -1;
+
+   op_addr += currAddr;
+  }
+
+  return op_addr;
+ }
+
+ // break up expr, using + or - as the delimiter:
+
+ var ptn_pm_del=/[^\053\055]{1,}/g;
+
+ tmp_arr = expr.match(ptn_pm_del);
+
+ if(tmp_arr)
+ {
+  // the expression is of the form: symbol(+|-)(offset)
+
+  tmp_str=tmp_arr[0];
+
+  if(tmp_str.length > 6) tmp_str=tmp_str.slice(0,6);
+
+  // test against the symbols list pattern:
+
+  if(TestSymbol(tmp_str))
+  {
+   op_addr = SymbolTable[tmp_str];
+  }
+  else
+  {
+   // error - cannot find the symbol:
+
+   return 077777; // error code
+  }
+
+  if(tmp_arr.length==2)
+  {
+   // the expression also includes the: (+|-)offset
+
+   tmp_str=tmp_arr[1];
+
+   if(/^\d{1,4}$/.test(tmp_str))
+   {
+    bPlus=true;
+
+    if(expr.indexOf("-") > -1) bPlus=false;
+
+    var offset=parseInt(tmp_str,8);
+
+    if(bPlus==false) offset *= -1;
+
+    op_addr += offset;
+   }
+   else
+   {
+    op_addr=077777; // error code
+   }
+  }
+ }
+
+ return op_addr;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function TestSymbol(test_str)
+{
+ var bExists=false;
+
+ // construct a RegExp object for the symbols:
+
+ var symbol_id;
+
+ var tmp_str="^(";
+
+ for(symbol_id in SymbolTable)
+ {
+  tmp_str += symbol_id + "|";  
+ }
+
+ tmp_str = tmp_str.slice(0,tmp_str.length-1);
+
+ tmp_str += ")$";
+
+ if(tmp_str.length > 4)
+ {
+  var ptn_symbol_list = new RegExp(tmp_str);
+
+  bExists = ptn_symbol_list.test(test_str); 
+ }
+
+ return bExists;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function GenerateInstrCode(opcode,bIndirect,op_addr,currAddr)
+{
+ var mcode=(opcode << 9);
+
+ if((op_addr & 07600) == 0)
+ {
+  // page 0:
+
+  mcode = mcode + (op_addr & 0177);
+
+  if(bIndirect) mcode += 0400;
+ }
+ else if((op_addr & 07600) == (currAddr & 07600))
+ {
+  // current page:
+
+  mcode = mcode + 0200 + (op_addr & 0177);
+
+  if(bIndirect) mcode += 0400;
+ }
+ else
+ {
+  // error: the instruction address is not on
+  // page 0 or the current page:
+
+  mcode=0; 
+ }
+ 
+ return mcode;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function Generate_g1_opr_code(line)
+{
+ // nop = 07000
+ // cla = 07200
+ // cll = 07100
+ // cma = 07040
+ // cml = 07020
+ // iac = 07001
+ // rar = 07010
+ // ral = 07004
+ // rtr = 07012
+ // rtl = 07006
+ // bsw = 07002 (swap 6-bit words)
+ // cia = 07041 (cma iac)
+ // stl = 07120 (cll cml)
+ // sta = 07240 (cla cma)
+ // glk = 07204 (cla ral)
+
+ line = line.toLowerCase();
+
+ line = line.replace("cia","cma iac");
+ line = line.replace("stl","cll cml");
+ line = line.replace("sta","cla cma");
+ line = line.replace("glk","cla ral");
+
+ var mcode=07000;
+
+ var ptn_space_del = /[^\s]{1,}/ig;
+
+ var tmp_arr=[];
+
+ tmp_arr = line.match(ptn_space_del);
+
+ var i;
+
+ var bMatchFound=false;
+
+ var bTest;
+
+ for(i=0;i < tmp_arr.length;i++)
+ {
+  bMatchFound=false;
+
+  if(tmp_arr[i]=="nop")
+  {
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="cla")
+  {
+   mcode = (mcode | 07200);
+
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="cll")
+  {
+   mcode = (mcode | 07100);
+
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="cma")
+  {
+   mcode = (mcode | 07040);
+
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="cml")
+  {
+   mcode = (mcode | 07020);
+
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="iac")
+  {
+   mcode = (mcode | 07001);
+
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="rar")
+  {
+   bTest = testRBits(mcode);
+
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07010);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="ral")
+  {
+   bTest = testRBits(mcode);
+ 
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07004);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="rtr")
+  {
+   bTest = testRBits(mcode);
+ 
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07012);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="rtl")
+  {
+   bTest = testRBits(mcode);
+ 
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07006);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="bsw")
+  {
+   bTest = testRBits(mcode);
+ 
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07002);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(bMatchFound==false)
+  {
+   mcode=0;
+
+   break;
+  }
+ }
+
+ if(bMatchFound==false) mcode=0;
+
+ return mcode;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function Generate_g2_opr_code(line)
+{
+ // nop = 07400
+ // cla = 07600
+ // skp = 07410
+ // sma = 07500
+ // sza = 07440
+ // snl = 07420
+ // spa = 07510
+ // sna = 07450
+ // szl = 07430
+ // hlt = 07402
+
+ // sma, sza, snl
+ // spa, sna, szl (reverse sense)
+
+ line = line.toLowerCase();
+
+ var rev_sense_bit = 010; 
+
+ var bTest;
+
+ var mcode=07000;
+
+ var ptn_space_del = /[^\s]{1,}/ig;
+
+ var tmp_arr=[];
+
+ tmp_arr = line.match(ptn_space_del);
+
+ var i;
+
+ var bMatchFound=false;
+
+ for(i=0;i < tmp_arr.length;i++)
+ {
+  bMatchFound=false;
+
+  if(tmp_arr[i]=="cla")
+  {
+   mcode = (mcode | 07600);
+
+   bMatchFound=true;
+  }
+
+  if(tmp_arr[i]=="skp")
+  {
+   if((mcode & 0160) != 0)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07410);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="sma")
+  {
+   if(mcode & rev_sense_bit)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07500);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="sza")
+  {
+   if(mcode & rev_sense_bit)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07440);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="snl")
+  {
+   if(mcode & rev_sense_bit)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07420);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="spa")
+  {
+   bTest = (testSkipBits(mcode) && !(mcode & rev_sense_bit));
+
+   bTest = bTest || testUnconditionalSkip(mcode);
+
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07510);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="sna")
+  {
+   bTest = (testSkipBits(mcode) && !(mcode & rev_sense_bit));
+
+   bTest = bTest || testUnconditionalSkip(mcode);
+
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07450);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="szl")
+  {
+   bTest = (testSkipBits(mcode) && !(mcode & rev_sense_bit));
+
+   bTest = bTest || testUnconditionalSkip(mcode);
+
+   if(bTest)
+   {
+    mcode=0;
+
+    bMatchFound=false;
+
+    break;
+   }
+   else
+   {
+    mcode = (mcode | 07430);
+
+    bMatchFound=true;
+   }
+  }
+
+  if(tmp_arr[i]=="hlt")
+  {
+   mcode = (mcode | 07402);
+
+   bMatchFound=true;
+  }
+
+  if(bMatchFound==false)
+  {
+   mcode=0;
+
+   break;
+  }
+ }
+
+ if(bMatchFound==false) mcode=0;
+
+ return mcode;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function testBitMask(mcode,test_code)
+{
+ var bSuccess=false;
+
+ if((mcode & test_code)==test_code) bSuccess=true;
+
+ return bSuccess;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function testRBits(mcode)
+{
+ return (mcode & 016);
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function testSkipBits(mcode)
+{
+ return (mcode & 0160);
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function testUnconditionalSkip(mcode)
+{
+ var bTest = ((mcode & 0160)==0);
+
+ bTest = bTest && (mcode & 010);
+
+ return bTest;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function executeInstruction()
+{
+ halt_flag=0;
+
+ // execute the current instruction in the IR:
+
+ var instr=instr_reg;
+
+ // 0000 is not a valid instruction:
+
+ if(instr==0)
+ {
+  document.getElementById("txtOut").value = "Error : 0000 is not a valid instruction!";
+  
+  halt_flag=1;
+  
+  return;
+ }
+
+ var addr=prog_counter;
+
+ var dest_addr=0;
+
+ var opcode=instr >>> 9;
+
+ if(opcode>=0 && opcode<6)
+ {
+  // calc the addr referenced by the MRI
+
+  // calc the page (0 or current)
+
+  if(instr & 0200)
+  {
+   // current page
+
+   dest_addr=addr & 07600;
+  }
+
+  // add the offset
+
+  dest_addr += instr & 0177;
+
+  // check for indirection
+
+  if(instr & 0400)
+  {
+   if(IsAutoIndexRegister(dest_addr))
+   {
+    coreMemory[dest_addr]++;
+
+    if(coreMemory[dest_addr] > 07777) coreMemory[dest_addr]=0;
+   }
+
+   dest_addr=coreMemory[dest_addr];
+  }
+ }
+
+ // execute the instruction:
+
+ switch(opcode)
+ {
+  case 0: // AND
+
+  AND(dest_addr);
+
+  break;
+
+  case 1: // TAD
+
+  TAD(dest_addr);
+
+  break;
+
+  case 2: // ISZ
+
+  ISZ(dest_addr);
+
+  break;
+
+  case 3: // DCA
+
+  DCA(dest_addr);
+
+  break;
+
+  case 4: // JMS
+
+  JMS(dest_addr);
+
+  break;
+
+  case 5: // JMP
+
+  JMP(dest_addr);
+
+  break;
+
+  case 7:
+
+  if(instr==07000 || instr==07400) NOP();
+  else if(instr < 07400) exeGroup1_OPR(instr);
+  else if((instr > 07400) && !(instr & 01)) exeGroup2_OPR(instr);
+
+  break;
+
+  default:
+
+  // halt on unknown instruction:
+
+  halt_flag=1;
+ }
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function IsAutoIndexRegister(addr)
+{
+ // Is the address one of the auto-index registers:
+
+ return ((addr >= 010) && (addr <= 017)); 
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function AND(addr)
+{
+ accumulator &= coreMemory[addr];
+
+ prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function TAD(addr)
+{
+ // 2's complement addition:
+
+ accumulator += coreMemory[addr];
+
+ // check for overflows:
+
+ if(accumulator & 010000)
+ {
+  link_bit = ~link_bit & 01;
+
+  accumulator &= 07777;
+ }
+
+ prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function ISZ(addr)
+{
+ // increment and skip if zero:
+
+ coreMemory[addr]++;
+
+ // if the value becomes greater than 07777 wrap
+ // back around to zero
+
+ if(coreMemory[addr] > 07777) coreMemory[addr]=0;
+
+ if(coreMemory[addr]==0) prog_counter++;
+
+ prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function DCA(addr)
+{
+ // deposit and clear Accumulator:
+
+ coreMemory[addr] = accumulator;
+
+ accumulator=0;
+
+ prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function JMS(addr)
+{
+ // jump to subroutine:
+
+ // return address is current address (PC) + 1:
+
+ coreMemory[addr]=prog_counter+1;
+
+ prog_counter=addr+1;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function JMP(addr)
+{
+ // jump to addr:
+
+ prog_counter=addr;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function exeGroup1_OPR(instr)
+{
+ // execute the Group 1 OPR instructions:
+
+ // event time 1 operations:
+
+ if((instr & 07200) == 07200) CLA();
+ if((instr & 07100) == 07100) CLL();
+ if((instr & 07040) == 07040) CMA();
+ if((instr & 07020) == 07020) CML();
+
+ // event time 2 operations:
+
+ if((instr & 07001) == 07001) IAC();
+
+ if((instr & 07016) == 07002) BSW();
+
+ if((instr & 07010) == 07010)
+ {
+  if(instr & 02) RTR();
+  else RAR();
+ }
+
+ if((instr & 07004) == 07004)
+ {
+  if(instr & 02) RTL();
+  else RAL();
+ }
+
+ // load the next instruction:
+
+ prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function exeGroup2_OPR(instr)
+{
+ // execute the Group 2 OPR instructions:
+
+ if(instr == 07400) NOP();
+
+ // event time 1 operations:
+
+ if(instr & 010)
+ {
+  // reverse sense skips + unconditional skip 
+
+  // SPA, SNA, SZL, SKP
+
+  calcReverseSenseSkip(instr);
+ }
+ else
+ {
+  // SMA, SZA, SNL
+
+  calcSkip(instr);
+ }
+
+ // event time 2 operations:
+
+ if((instr & 07600) == 07600) CLA();
+
+ if((instr & 07402) == 07402) HLT();
+
+ // load the next instruction:
+
+ if(halt_flag==1) prog_counter=0200;
+ else prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function CLA()
+{
+ accumulator=0;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function CLL()
+{
+ link_bit=0;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function CMA()
+{
+ // complement the accumulator
+
+ accumulator = ~accumulator & 07777;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function CML()
+{
+ // complement the link bit
+
+ link_bit = ~link_bit & 01;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function RAR()
+{
+ // right rotation
+
+ link_bit = accumulator & 01;
+
+ accumulator >>>= 1;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function RAL()
+{
+ // left rotation
+
+ var tmp_bit=link_bit;
+
+ link_bit=(accumulator & 04000) >>> 11;
+
+ accumulator <<= 1;
+
+ accumulator &= 07777;
+
+ accumulator += tmp_bit;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function RTR()
+{
+ // right rotation twice
+
+ RAR(); RAR();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function RTL()
+{
+ // left rotation twice
+
+ RAL(); RAL();
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function BSW()
+{
+ // byte swap:
+
+ var temp = accumulator;
+
+ accumulator = (temp & 077) << 6;
+
+ accumulator = accumulator | ((temp & 07700) >>> 6);
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function IAC()
+{
+ // increment the accumulator
+
+ accumulator++;
+
+ if(accumulator > 07777) accumulator=0;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function NOP()
+{
+ // no operation, just increment the PC
+
+ prog_counter++;
+
+ instr_reg=coreMemory[prog_counter];
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function HLT()
+{
+ // stop the program:
+
+ halt_flag=1;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calcSkip(instr)
+{
+ // SMA, SZA, SNL
+
+ // OR if combined skips:
+
+ var doSkip = ((instr & 0100) && (accumulator >= 04000)); // SMA
+
+ doSkip = doSkip || ((instr & 040) && (accumulator == 0)); // SZA
+
+ doSkip = doSkip || ((instr & 020) && (link_bit != 0)); // SNL
+
+ if(doSkip) prog_counter++;
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+function calcReverseSenseSkip(instr)
+{
+ // reverse sense skips + unconditional skip 
+
+ // SPA, SNA, SZL, {SKP}
+
+ // AND if combined skips:
+
+ if(testUnconditionalSkip(instr))
+ {
+  // unconditional skip: SKP
+
+  prog_counter++;
+ }
+ else if(testSkipBits(instr))
+ {
+  var doSkip = true;
+  
+  if(instr & 0100) doSkip = doSkip && (accumulator < 04000 && accumulator > 0); // SPA
+
+  if(instr & 040) doSkip = doSkip && (accumulator != 0); // SNA
+
+  if(instr & 020) doSkip = doSkip && (link_bit == 0); // SZL
+
+  if(doSkip) prog_counter++;
+ }
+}
+
+// +++++++++++++++++++++++++++++++++++++++++++
+
+</script>
+
+</html>

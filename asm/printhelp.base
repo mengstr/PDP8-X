@@ -1,7 +1,18 @@
-  *10
+*10
 STRP,  MSG-1         
+*40
+ZTEST, NOP
+        0007 /AND 7
+        0607 /AND I 7
+        0407 /AND I Z 7
+        0010 /AND 10
+        0610 /AND I 10
+        0410 /AND I Z 10
+        JMP START
+
 
 *200
+START,
         TFL             / Init TTY
 LOOP,   CLA             / Clear AC in preparation for TAD
         TAD I STRP      / Pre-increment mem location 10, fetch indirect to get the next character of our message
