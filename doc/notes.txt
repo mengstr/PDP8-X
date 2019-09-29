@@ -1,6 +1,21 @@
+            876 543 210
+
+1   AND 000 100 001 xxx 
+1   TAD 001 100 001 xxx
+1   ISZ 010 100 001 xxx
+1   DCA 011 100 001 xxx
+1   JMS 100 100 001 xxx
+1   JMP 101 100 001 xxx
+0   IOT 110 xxx xxx xxx
+0   OPR 110 xxx xxx xxx
+
+7(MP) should be 0 (PAGE ZERO) to set AUTOIND
+but can also be 1(CURRENT PAGE) if also the high part of PCLATCHED is 0 
+
+
+
 Busses
 -------
-
 
 Bus         Dest    Source
 --------------------------------

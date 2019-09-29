@@ -30,6 +30,14 @@ TEST1A, NOP
 
 *200
 START,
+        NOP
+        TAD I 11
+        TAD 11
+        TAD I 11
+        TAD 11
+/        JMP 0100
+
+
         TFL             / Init TTY
 LOOP,   CLA             / Clear AC in preparation for TAD
         TAD I STRP      / Pre-increment mem location 10, fetch indirect to get the next character of our message
