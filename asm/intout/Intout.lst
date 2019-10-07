@@ -1,0 +1,80 @@
+   1            /
+   2            / Do some interrupt-based output.
+   3            CAF=6007
+   4            
+   5                    *0
+   6 00000 0000         .-.             / Interrupt return address
+   7 00001 5123         JMP INTSRV      / Go to interrupt service routine
+   8            
+   9                    *20
+  10 00020 0000 PMSG,   .-.             / Not Autoindex register
+  11 00021 0022 MSGP,   MSG
+  12 00022 0110 MSG,    "H-0200
+  13 00023 0105         "E-0200
+  14 00024 0114         "L-0200
+  15 00025 0114         "L-0200
+  16 00026 0117         "O-0200
+  17 00027 0215         0215
+  18 00030 0212         0212
+  19 00031 0000         0
+  20 00032 0000 AC,     .-.
+  21 00033 0000 L,      .-.
+  22 00034 0000 CHAR,   .-.
+  23 00035 0000 KEYFLG, 0
+  24 00036 0000 PRTFLG, 0
+  25            
+  26                    *100
+  27 00100 6007 START,  CAF
+  28 00101 1021         TAD MSGP        / Set up to print message
+  29 00102 3020         DCA PMSG
+  30 00103 6001         ION             / Interrupts on
+  31 00104 5505         JMP I .+1
+  32 00105 0106         MSGLP
+  33 00106 1420 MSGLP,  TAD I PMSG      / Get a character
+  34 00107 7650         SNA CLA
+  35 00110 7402         HLT             / All finished
+  36 00111 3036         DCA PRTFLG      / Clear printer flag
+  37 00112 1420         TAD I PMSG
+  38 00113 2020         ISZ PMSG
+  39 00114 6046         TLS             / Print the character
+  40 00115 7200         CLA
+  41 00116 1036         TAD PRTFLG      / Wait for printer interrupt
+  42 00117 7700         SMA CLA
+  43 00120 5116         JMP .-2
+  44 00121 7200         CLA
+  45 00122 5106         JMP MSGLP
+  46 00123 3032 INTSRV, DCA AC          / Save AC and L
+  47 00124 7004         RAL
+  48 00125 3033         DCA L
+  49 00126 6031         KSF             / Copy Keyboard flag to KEYFLG
+  50 00127 5133         JMP KEYOK
+  51 00130 6036         KRB             / Save Keyboard character
+  52 00131 3034         DCA CHAR
+  53 00132 7040         CMA
+  54 00133 3035 KEYOK,  DCA KEYFLG
+  55 00134 6041         TSF             / Copy Printer flag to PRTFLG
+  56 00135 5140         JMP PRTOK
+  57 00136 6042         TCF             / Clear Printer flag to prevent re-interrupt.
+  58 00137 7040         CMA
+  59 00140 3036 PRTOK,  DCA PRTFLG
+  60 00141 1033         TAD L           / Restore L, then AC
+  61 00142 7110         CLL RAR
+  62 00143 1032         TAD AC
+  63 00144 6001         ION             / Re-enable interrupts
+  64 00145 5400         JMP I 0         / Return to user mode
+  65            $
+
+AC      0032
+CAF     6007
+CHAR    0034
+INTSRV  0123
+KEYFLG  0035
+KEYOK   0133
+L       0033
+MSG     0022
+MSGLP   0106
+MSGP    0021
+PMSG    0020
+PRTFLG  0036
+PRTOK   0140
+START   0100 unreferenced

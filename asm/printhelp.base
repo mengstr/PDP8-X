@@ -1,7 +1,21 @@
+*0
+IRQ,0
+        NOP
+        NOP
+        JMP I 0
+
+
 *10
 STRP,  MSG-1         
 
 *100
+        CAF
+FLASIE, KIE
+        IAC
+        JMP FLASIE
+
+
+
 TEST1,                  / Test IRQ Inhibit delays
         NOP
         NOP
@@ -25,24 +39,51 @@ TEST1,                  / Test IRQ Inhibit delays
         JMP TEST1A
 TEST1A, NOP
         NOP
-        JMP TEST1
+        NOP
+        JMP MAIN
 
+/
+/ Echo received character three times
+/
+TEST2,	        					
+        KCC	/ CLEAR FLAG
+L1,	KSF	/ SKIP IF CHAR
+        JMP L1	/ SPIN
+	KRB	/ READ CHAR
+	TLS	/ PRINT CHAR
+L2a,	TSF	/ WAIT UNTIL PRINTED
+        JMP L2a	/ SPIN
+	TLS	/ PRINT CHAR
+L2b,	TSF	/ WAIT UNTIL PRINTED
+        JMP L2b	/ SPIN
+	TLS	/ PRINT CHAR
+L2c,	TSF	/ WAIT UNTIL PRINTED
+        JMP L2c	/ SPIN
+	JMP L1	/ LOOP
+
+/
+/ Print pattern of ascii characters
+/
+TEST3,
+        CLA	/ INIT CHAR
+qL1,	TLS	/ PRINT CHAR
+qL2,	TSF	/ WAIT UNTIL PRINTED
+        JMP qL2	/ SPIN
+	IAC	/ INCRE CHAR
+	JMP qL1	/ LOOP
+						
 
 *200
 START,
-        NOP
-        TAD I 11
-        TAD 11
-        TAD I 11
-        TAD 11
-/        JMP 0100
+        JMP CYLON
+        JMP MAIN
 
-
+MAIN,
         TFL             / Init TTY
 LOOP,   CLA             / Clear AC in preparation for TAD
         TAD I STRP      / Pre-increment mem location 10, fetch indirect to get the next character of our message
         SNA             / Skip if message not complete
-        JMP TEST1
+STOP,   JMP STOP
         JMS OUT1        / Write out one character
         JMP LOOP        / Loop for more
 
@@ -51,6 +92,32 @@ OUT1,   0               / Subroutine - print 1 character in AC
         JMP .-1         / Wait for flag
         TLS             / Send the character in the AC
         JMP I OUT1      / Return to caller
+
+
+CYLON,
+/        CLA CLL
+/        CIA
+/        CLA CLL
+/        STL
+/        CLA CLL
+/        CIA STL	
+/        CLA CLL
+/        CMA CML
+CLA CLL CML
+CYLON5,	RAL	
+        SZL	
+	JMP CYLON1
+CYLON2,	ISZ	CYLONV
+	JMP CYLON2
+	JMP CYLON5
+CYLON1,	RAR
+	SZL	
+	JMP CYLON5
+CYLON6,	ISZ	CYLONV
+	JMP CYLON6
+	JMP CYLON1
+CYLONV, 0
+
 
 MSG,
         012;012

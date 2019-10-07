@@ -22,6 +22,10 @@ Step one is to get the simulation fully working with the built-in non-standard c
 | MAINDEC-8E-D1AA-Memory-Checkerboard | Memory testing | |
 | MAINDEC-8E-D1EA-Memory-Address | Memory testing | |
    
+MAINDEC-8E-D0HC	Random JMP Test
+MAINDEC-8E-D0JC	Random JMP-JMS Test
+MAINDEC-8E-D1FA	Extended Addressing Test
+
 The run time show how long it took running the test on a Late 2013 MacBookPro until the first output on the TTY console (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
 
 ## Other PDP-8 softwares
