@@ -16,17 +16,13 @@ declare -a arr=(
 	"intIO.bin                    PC:0100"
 	"intout.bin                   PC:0100"
 	"tstest.bin                   PC:0100"
-	"FOCAL-8.bn                   PC:0200"
-	"FOCAL-8-NOINT.bn             PC:0200"
-	"myfocal.bin"
+	"myfocal-noint.bin            PC:0200"
+	"myfocal.bin                  PC:0200"
 )
 
 ord() {
   LC_CTYPE=C printf '%d' "'$1"
 }
-
-
-
 
 
 cp asm/printhelp.base asm/printhelp.pal

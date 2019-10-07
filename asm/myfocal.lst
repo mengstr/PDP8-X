@@ -4305,7 +4305,23 @@
  3531 07555  5750          JMP I PRINTO            / Return
  3532 07556  0007  LP7,    10-1                    / Mask for single octal digit
  3533              
- 3534              $
+ 3534              / PATCH FOR NO-INTERRUPTS KEYBOARD INPUT
+ 3535              /*63
+ 3536              / 1354
+ 3537              /*64
+ 3538              / 2414
+
+
+
+      /                                                                  Page 78
+
+
+ 3539              /*2732
+ 3540              / 5336
+ 3541              /*2762
+ 3542              / 7000
+ 3543              
+ 3544              $
 
       No detected errors
       No links generated

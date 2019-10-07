@@ -3531,4 +3531,14 @@ PRINTO,	.-.                     / Output octal digit helper
 	JMP I PRINTO            / Return
 LP7,	10-1                    / Mask for single octal digit
 
+/ PATCH FOR NO-INTERRUPTS KEYBOARD INPUT
+/*63
+/ 1354
+/*64
+/ 2414
+/*2732
+/ 5336
+/*2762
+/ 7000
+
 $
