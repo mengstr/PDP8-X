@@ -22,10 +22,6 @@ Step one is to get the simulation fully working with the built-in non-standard c
 | MAINDEC-8E-D1AA-Memory-Checkerboard | Memory testing | |
 | MAINDEC-8E-D1EA-Memory-Address | Memory testing | |
    
-MAINDEC-8E-D0HC	Random JMP Test
-MAINDEC-8E-D0JC	Random JMP-JMS Test
-MAINDEC-8E-D1FA	Extended Addressing Test
-
 The run time show how long it took running the test on a Late 2013 MacBookPro until the first output on the TTY console (signifying that X number of passes have succeeded). On a real PDP-8/E the times are between five and ten seconds for most tests.   
 
 ## Other PDP-8 softwares
@@ -62,6 +58,8 @@ The prereleases are available from https://infdigital.dhbw-mosbach.de
 The main repo of the Digital project is at https://github.com/hneemann/Digital
 
 ## Versions
+- 2019-10-07 v0.4 - MAINDECs ok, FOCAL-69 runs successfully
+- 2019-09-27 v0.3 - Mostly ok, FOCAL fails
 - 2019-09-23 v0.2 - Runs MAINDEC-8E-D0BB (Instruction test 2) successfully
 - 2019-09-19 v0.2PA - Runs MAINDEC-8E-D0BB (Instruction test 2) until *2677. Uses 8-slot banked memory to ease changing of test images.
 - 2019-09-19 v0.1 - Runs MAINDEC-8E-D0AB (Instruction test 1) successfully

@@ -13,12 +13,14 @@ declare -a arr=(
 	"D0CC-AddTest.pt              PC:0200"
 	"D1AA-Memory-Checkerboard.pt  PC:0200"
 	"D1EA-Memory-Address.rim      PC:0200"
-	"intIO.bin                    PC:0100"
-	"intout.bin                   PC:0100"
-	"tstest.bin                   PC:0100"
-	"myfocal-noint.bin            PC:0200"
 	"myfocal.bin                  PC:0200"
 )
+
+#	"intIO.bin                    PC:0100"
+#	"intout.bin                   PC:0100"
+#	"tstest.bin                   PC:0100"
+#	"myfocal-noint.bin            PC:0200"
+
 
 ord() {
   LC_CTYPE=C printf '%d' "'$1"
