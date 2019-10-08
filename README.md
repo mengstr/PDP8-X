@@ -43,6 +43,7 @@ The run time show how long it took running the test on a Late 2013 MacBookPro un
 
 ## Folder structure
 - /asm/ - Assembly source files. By using the assembler `tools/pal` these are made into tape binaries (.bin/.rim) and put in the *bin* folder
+- /asm/slyngstad/ - Original interrupt test files from Vince Slyngstad 
 - /bin/ - Tape files in .bin or .rim format. These are converted into loadable files by the `tools/tape2bin.sh` utility
 - /doc/ - Pdf's and textfiles with info about the PDP-8 architecture
 - /img/ - ROM/RAM images to be loaded into the simulated RAM
@@ -63,3 +64,14 @@ The main repo of the Digital project is at https://github.com/hneemann/Digital
 - 2019-09-23 v0.2 - Runs MAINDEC-8E-D0BB (Instruction test 2) successfully
 - 2019-09-19 v0.2PA - Runs MAINDEC-8E-D0BB (Instruction test 2) until *2677. Uses 8-slot banked memory to ease changing of test images.
 - 2019-09-19 v0.1 - Runs MAINDEC-8E-D0AB (Instruction test 1) successfully
+
+## Copyrights
+Parts of this repo was written by others.
+
+The MAINDECs and FOCAL is/was of course written and owned by Digital Equipment
+
+The Interrupt tests in /asm/slyngstad/ was written and owned by Vince Slyngstad
+
+In /tools/ there's a copy of Digital written by Helmut Neeman
+
+In /tools/palbart there's the palbart assembler written by Gary A. Messenbrink

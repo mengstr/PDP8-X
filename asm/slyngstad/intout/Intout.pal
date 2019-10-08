@@ -1,0 +1,65 @@
+/
+/ Do some interrupt-based output.
+CAF=6007
+
+	*0
+	.-.		/ Interrupt return address
+	JMP INTSRV	/ Go to interrupt service routine
+
+	*20
+PMSG,	.-.		/ Not Autoindex register
+MSGP,	MSG
+MSG,	"H-0200
+	"E-0200
+	"L-0200
+	"L-0200
+	"O-0200
+	0215
+	0212
+	0
+AC,	.-.
+L,	.-.
+CHAR,	.-.
+KEYFLG, 0
+PRTFLG,	0
+
+	*100
+START,	CAF
+	TAD MSGP	/ Set up to print message
+	DCA PMSG
+	ION		/ Interrupts on
+	JMP I .+1
+	MSGLP
+MSGLP,	TAD I PMSG	/ Get a character
+	SNA CLA
+	HLT		/ All finished
+	DCA PRTFLG	/ Clear printer flag
+	TAD I PMSG
+	ISZ PMSG
+	TLS		/ Print the character
+	CLA
+	TAD PRTFLG	/ Wait for printer interrupt
+	SMA CLA
+	JMP .-2
+	CLA
+	JMP MSGLP
+INTSRV,	DCA AC		/ Save AC and L
+	RAL
+	DCA L
+	KSF		/ Copy Keyboard flag to KEYFLG
+	JMP KEYOK
+	KRB		/ Save Keyboard character
+	DCA CHAR
+	CMA
+KEYOK,	DCA KEYFLG
+	TSF		/ Copy Printer flag to PRTFLG
+	JMP PRTOK
+	TCF		/ Clear Printer flag to prevent re-interrupt.
+	CMA
+PRTOK,	DCA PRTFLG
+	TAD L		/ Restore L, then AC
+	CLL RAR
+	TAD AC
+	ION		/ Re-enable interrupts
+	JMP I 0		/ Return to user mode
+$
