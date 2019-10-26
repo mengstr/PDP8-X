@@ -3,8 +3,17 @@
   <version>1</version>
   <attributes>
     <entry>
+      <string>backgroundColor</string>
+      <awt-color>
+        <red>153</red>
+        <green>255</green>
+        <blue>153</blue>
+        <alpha>255</alpha>
+      </awt-color>
+    </entry>
+    <entry>
       <string>Width</string>
-      <int>8</int>
+      <int>12</int>
     </entry>
   </attributes>
   <visualElements>
@@ -2401,6 +2410,115 @@ SLOW READER</string>
       </elementAttributes>
       <pos x="-1360" y="-880"/>
     </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>KBD8</string>
+        </entry>
+      </elementAttributes>
+      <pos x="-1420" y="0"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>KBD8</string>
+        </entry>
+        <entry>
+          <string>Bits</string>
+          <int>8</int>
+        </entry>
+      </elementAttributes>
+      <pos x="-1380" y="0"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Or</elementName>
+      <elementAttributes/>
+      <pos x="-1280" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>LED</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>Color</string>
+          <awt-color>
+            <red>255</red>
+            <green>255</green>
+            <blue>0</blue>
+            <alpha>255</alpha>
+          </awt-color>
+        </entry>
+      </elementAttributes>
+      <pos x="-1220" y="240"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>FLAG_KBD</string>
+        </entry>
+      </elementAttributes>
+      <pos x="-1300" y="260"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>FLAG_PRNCOMPLETE</string>
+        </entry>
+      </elementAttributes>
+      <pos x="-1300" y="220"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Tunnel</elementName>
+      <elementAttributes>
+        <entry>
+          <string>rotation</string>
+          <rotation rotation="2"/>
+        </entry>
+        <entry>
+          <string>NetName</string>
+          <string>FLAG_KBDIE</string>
+        </entry>
+      </elementAttributes>
+      <pos x="-1300" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>And</elementName>
+      <elementAttributes/>
+      <pos x="-1180" y="180"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Out</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Label</string>
+          <string>IRQ</string>
+        </entry>
+      </elementAttributes>
+      <pos x="-1100" y="200"/>
+    </visualElement>
   </visualElements>
   <wires>
     <wire>
@@ -2414,6 +2532,10 @@ SLOW READER</string>
     <wire>
       <p1 x="-660" y="0"/>
       <p2 x="-540" y="0"/>
+    </wire>
+    <wire>
+      <p1 x="-1420" y="0"/>
+      <p2 x="-1380" y="0"/>
     </wire>
     <wire>
       <p1 x="200" y="0"/>
@@ -2452,6 +2574,10 @@ SLOW READER</string>
       <p2 x="120" y="260"/>
     </wire>
     <wire>
+      <p1 x="-1300" y="260"/>
+      <p2 x="-1280" y="260"/>
+    </wire>
+    <wire>
       <p1 x="-460" y="260"/>
       <p2 x="-420" y="260"/>
     </wire>
@@ -2476,12 +2602,12 @@ SLOW READER</string>
       <p2 x="680" y="-520"/>
     </wire>
     <wire>
-      <p1 x="-1260" y="-520"/>
-      <p2 x="-1160" y="-520"/>
-    </wire>
-    <wire>
       <p1 x="440" y="-520"/>
       <p2 x="540" y="-520"/>
+    </wire>
+    <wire>
+      <p1 x="-1260" y="-520"/>
+      <p2 x="-1160" y="-520"/>
     </wire>
     <wire>
       <p1 x="60" y="-140"/>
@@ -2732,6 +2858,10 @@ SLOW READER</string>
       <p2 x="-460" y="180"/>
     </wire>
     <wire>
+      <p1 x="-1300" y="180"/>
+      <p2 x="-1180" y="180"/>
+    </wire>
+    <wire>
       <p1 x="-460" y="180"/>
       <p2 x="-420" y="180"/>
     </wire>
@@ -2860,6 +2990,10 @@ SLOW READER</string>
       <p2 x="-540" y="200"/>
     </wire>
     <wire>
+      <p1 x="-1120" y="200"/>
+      <p2 x="-1100" y="200"/>
+    </wire>
+    <wire>
       <p1 x="340" y="-460"/>
       <p2 x="500" y="-460"/>
     </wire>
@@ -2968,6 +3102,14 @@ SLOW READER</string>
       <p2 x="120" y="220"/>
     </wire>
     <wire>
+      <p1 x="-1300" y="220"/>
+      <p2 x="-1280" y="220"/>
+    </wire>
+    <wire>
+      <p1 x="-1200" y="220"/>
+      <p2 x="-1180" y="220"/>
+    </wire>
+    <wire>
       <p1 x="-1360" y="-1120"/>
       <p2 x="-1340" y="-1120"/>
     </wire>
@@ -2984,12 +3126,12 @@ SLOW READER</string>
       <p2 x="480" y="-480"/>
     </wire>
     <wire>
-      <p1 x="-1220" y="-480"/>
-      <p2 x="-1160" y="-480"/>
-    </wire>
-    <wire>
       <p1 x="480" y="-480"/>
       <p2 x="540" y="-480"/>
+    </wire>
+    <wire>
+      <p1 x="-1220" y="-480"/>
+      <p2 x="-1160" y="-480"/>
     </wire>
     <wire>
       <p1 x="-500" y="-100"/>
@@ -3094,6 +3236,10 @@ SLOW READER</string>
     <wire>
       <p1 x="180" y="240"/>
       <p2 x="200" y="240"/>
+    </wire>
+    <wire>
+      <p1 x="-1220" y="240"/>
+      <p2 x="-1200" y="240"/>
     </wire>
     <wire>
       <p1 x="-700" y="240"/>
@@ -3370,6 +3516,10 @@ SLOW READER</string>
     <wire>
       <p1 x="-1200" y="-640"/>
       <p2 x="-1200" y="-620"/>
+    </wire>
+    <wire>
+      <p1 x="-1200" y="220"/>
+      <p2 x="-1200" y="240"/>
     </wire>
     <wire>
       <p1 x="240" y="-900"/>
