@@ -1,0 +1,56 @@
+
+
+
+      /                                                                   Page 1
+
+
+    1              /
+    2              / Check for existence of timeshare option.
+    3        6204  CINT=6204
+    4        6254  SINT=6254
+    5        6264  CUF=6264
+    6        6274  SUF=6274
+    7              
+    8        0000          *0
+    9 00000  0000          .-.             / Interrupt return address
+   10 00001  6254          SINT            / User mode interrupt?
+   11 00002  5400          JMP I 0         / No, just return (interrupts off)
+   12 00003  7200          CLA             / Yes, Lose "S
+   13 00004  1011          TAD POK         / Reset message pointer
+   14 00005  3010          DCA PMSG
+   15 00006  6264          CUF             / Clear User Mode
+   16 00007  5106          JMP MSGLP       / Restart message loop
+   17              
+   18        0010          *10
+   19 00010  0000  PMSG,   .-.             / Autoindex register
+   20 00011  0011  POK,    .
+   21 00012  0317          "O
+   22 00013  0313          "K
+   23 00014  0000          0
+   24 00015  0015  PSORRY, .
+   25 00016  0323          "S
+   26 00017  0317          "O
+   27 00020  0322          "R
+   28 00021  0322          "R
+   29 00022  0331          "Y
+   30 00023  0000          0
+   31              
+   32        0100          *100
+   33 00100  1015          TAD PSORRY      / Set up to print "SORRY"
+   34 00101  3010          DCA PMSG
+   35 00102  6274          SUF             / User mode
+   36 00103  6001          ION             / Interrupts on
+   37 00104  5505          JMP I .+1
+   38 00105  0106          MSGLP
+   39 00106  1410  MSGLP,  TAD I PMSG      / Get a character
+   40 00107  7450          SNA     
+   41 00110  5514          JMP I C7600     / Return to Operating System
+   42 00111  6046          TLS             / Print the character (or trap)
+   43 00112  6041          TSF
+   44 00113  5112          JMP .-1
+   45 00114  7600  C7600,  7600
+   46 00115  5106          JMP MSGLP
+   47              $
+
+      No detected errors
+      No links generated

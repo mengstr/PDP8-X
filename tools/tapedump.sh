@@ -45,6 +45,7 @@ WORDS=4096
 
 # Convert the in-data (stdin) into a temporary file with one octal word per line
 tmpfile=$(mktemp)
+echo tmpfile=$tmpfile
 od -An -v -b | LC_ALL=C tr -cs '0-7' '[\n*]' > $tmpfile
 
 declare -a buf
@@ -59,13 +60,14 @@ address=0
 # scan all octal data line-by-line
 while read line; do
     op=${line:0:1}
-
+    echo address=$address line=$line op=$op
     # Leader/Trailer records - Just ignore them
-    if [ "$op" == "2" ]; then continue; fi
+    if [ "$op" == "2" ]; then echo "$op is leader/trailer"; continue; fi
 
     # Field records - update the field variable (unused in this code)
     if [ "$op" == "3" ]; then
         field=${line:1:1}
+	echo field=$field
         continue
     fi
 
@@ -89,6 +91,7 @@ while read line; do
         lastAddress=$address
         lastData=${buf[$address]}
         buf[$address]=$data
+	echo buf\[$address\]=$data
         (( address++ ))
         continue
     fi
@@ -99,7 +102,7 @@ while read line; do
     fi
 
 done < $tmpfile
-rm $tmpfile
+#rm $tmpfile
 
 # Undo the last written data that was the checksum in a .bin file
 buf[$lastAddress]=$lastData

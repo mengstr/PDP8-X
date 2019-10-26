@@ -311,7 +311,7 @@
           <string>http://digitarworld.uw.hu/circuits.html</string>
         </entry>
       </elementAttributes>
-      <pos x="520" y="-640"/>
+      <pos x="480" y="-560"/>
     </visualElement>
     <visualElement>
       <elementName>In</elementName>
@@ -322,6 +322,19 @@
         </entry>
       </elementAttributes>
       <pos x="-120" y="-860"/>
+    </visualElement>
+    <visualElement>
+      <elementName>Text</elementName>
+      <elementAttributes>
+        <entry>
+          <string>Description</string>
+          <string>? pcs 7400 Quad 2-input NAND
+? pcs 7404 Hex inverter
+1 pcs 74164 SIPO Shift register
+2 pcs 74161 4 bit counter</string>
+        </entry>
+      </elementAttributes>
+      <pos x="620" y="-780"/>
     </visualElement>
   </visualElements>
   <wires>

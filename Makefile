@@ -1,6 +1,7 @@
 JVM = java
 PAL = tools/bartpal
-DIGITAL = tools/Digital23-107.jar
+DIGITAL = tools/Digital-SRL.jar
+#DIGITAL = tools/Digital23-107.jar
 
 BINS := $(wildcard bin/*.bn bin/*.bin bin/*.rim)
 TMP := $(addsuffix .eep,$(basename $(BINS)))

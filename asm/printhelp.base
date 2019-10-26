@@ -1,12 +1,19 @@
+CAF=6007
+
 *0
 IRQ,0
-        NOP
-        NOP
-        JMP I 0
+	JMP INTSRV	/ Go to interrupt service routine
+
+	*20
+PMSG,	.-.		/ Not Autoindex register
+MSGP,	MSG
+AC,	.-.
+L,	.-.
+CHAR,	.-.
+KEYFLG, 0
+PRTFLG,	0
 
 
-*10
-STRP,  MSG-1         
 
 *100
         CAF
@@ -40,7 +47,7 @@ TEST1,                  / Test IRQ Inhibit delays
 TEST1A, NOP
         NOP
         NOP
-        JMP MAIN
+        JMP TEST1
 
 /
 / Echo received character three times
@@ -75,23 +82,7 @@ qL2,	TSF	/ WAIT UNTIL PRINTED
 
 *200
 START,
-        JMP CYLON
-        JMP MAIN
-
-MAIN,
-        TFL             / Init TTY
-LOOP,   CLA             / Clear AC in preparation for TAD
-        TAD I STRP      / Pre-increment mem location 10, fetch indirect to get the next character of our message
-        SNA             / Skip if message not complete
-STOP,   JMP STOP
-        JMS OUT1        / Write out one character
-        JMP LOOP        / Loop for more
-
-OUT1,   0               / Subroutine - print 1 character in AC
-        TSF             / Skip if printer ready
-        JMP .-1         / Wait for flag
-        TLS             / Send the character in the AC
-        JMP I OUT1      / Return to caller
+        JMP STARTA
 
 
 CYLON,
@@ -119,7 +110,50 @@ CYLON6,	ISZ	CYLONV
 CYLONV, 0
 
 
+	*300
+STARTA,	CAF
+	TAD MSGP	/ Set up to print message
+	DCA PMSG
+	ION		/ Interrupts on
+	JMP I .+1
+	MSGLP
+MSGLP,	TAD I PMSG	/ Get a character
+	SNA CLA
+	HLT		/ All finished
+	DCA PRTFLG	/ Clear printer flag
+	TAD I PMSG
+	ISZ PMSG
+	TLS		/ Print the character
+	CLA
+	TAD PRTFLG	/ Wait for printer interrupt
+	SMA CLA
+	JMP .-2
+	CLA
+	JMP MSGLP
+INTSRV,	DCA AC		/ Save AC and L
+	RAL
+	DCA L
+	KSF		/ Copy Keyboard flag to KEYFLG
+	JMP KEYOK
+	KRB		/ Save Keyboard character
+	DCA CHAR
+	CMA
+KEYOK,	DCA KEYFLG
+	TSF		/ Copy Printer flag to PRTFLG
+	JMP PRTOK
+	TCF		/ Clear Printer flag to prevent re-interrupt.
+	CMA
+PRTOK,	DCA PRTFLG
+	TAD L		/ Restore L, then AC
+	CLL RAR
+	TAD AC
+	ION		/ Re-enable interrupts
+	JMP I 0		/ Return to user mode
+
+
+	*400
 MSG,
-        012;012
-        "A;"v;"a;"i;"l;"a;"b;"l;"e;" ;"s;"o;"f;"t;"w;"a;"r;"e;"s;":;012
-        "-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;012
+        015;012
+	015;012
+        "A;"v;"a;"i;"l;"a;"b;"l;"e;" ;"s;"o;"f;"t;"w;"a;"r;"e;"s;":;015;012
+        "-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;015;012

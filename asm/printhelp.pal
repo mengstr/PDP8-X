@@ -1,12 +1,19 @@
+CAF=6007
+
 *0
 IRQ,0
-        NOP
-        NOP
-        JMP I 0
+	JMP INTSRV	/ Go to interrupt service routine
+
+	*20
+PMSG,	.-.		/ Not Autoindex register
+MSGP,	MSG
+AC,	.-.
+L,	.-.
+CHAR,	.-.
+KEYFLG, 0
+PRTFLG,	0
 
 
-*10
-STRP,  MSG-1         
 
 *100
         CAF
@@ -40,7 +47,7 @@ TEST1,                  / Test IRQ Inhibit delays
 TEST1A, NOP
         NOP
         NOP
-        JMP MAIN
+        JMP TEST1
 
 /
 / Echo received character three times
@@ -75,23 +82,7 @@ qL2,	TSF	/ WAIT UNTIL PRINTED
 
 *200
 START,
-        JMP CYLON
-        JMP MAIN
-
-MAIN,
-        TFL             / Init TTY
-LOOP,   CLA             / Clear AC in preparation for TAD
-        TAD I STRP      / Pre-increment mem location 10, fetch indirect to get the next character of our message
-        SNA             / Skip if message not complete
-STOP,   JMP STOP
-        JMS OUT1        / Write out one character
-        JMP LOOP        / Loop for more
-
-OUT1,   0               / Subroutine - print 1 character in AC
-        TSF             / Skip if printer ready
-        JMP .-1         / Wait for flag
-        TLS             / Send the character in the AC
-        JMP I OUT1      / Return to caller
+        JMP STARTA
 
 
 CYLON,
@@ -119,10 +110,53 @@ CYLON6,	ISZ	CYLONV
 CYLONV, 0
 
 
+	*300
+STARTA,	CAF
+	TAD MSGP	/ Set up to print message
+	DCA PMSG
+	ION		/ Interrupts on
+	JMP I .+1
+	MSGLP
+MSGLP,	TAD I PMSG	/ Get a character
+	SNA CLA
+	HLT		/ All finished
+	DCA PRTFLG	/ Clear printer flag
+	TAD I PMSG
+	ISZ PMSG
+	TLS		/ Print the character
+	CLA
+	TAD PRTFLG	/ Wait for printer interrupt
+	SMA CLA
+	JMP .-2
+	CLA
+	JMP MSGLP
+INTSRV,	DCA AC		/ Save AC and L
+	RAL
+	DCA L
+	KSF		/ Copy Keyboard flag to KEYFLG
+	JMP KEYOK
+	KRB		/ Save Keyboard character
+	DCA CHAR
+	CMA
+KEYOK,	DCA KEYFLG
+	TSF		/ Copy Printer flag to PRTFLG
+	JMP PRTOK
+	TCF		/ Clear Printer flag to prevent re-interrupt.
+	CMA
+PRTOK,	DCA PRTFLG
+	TAD L		/ Restore L, then AC
+	CLL RAR
+	TAD AC
+	ION		/ Re-enable interrupts
+	JMP I 0		/ Return to user mode
+
+
+	*400
 MSG,
-        012;012
-        "A;"v;"a;"i;"l;"a;"b;"l;"e;" ;"s;"o;"f;"t;"w;"a;"r;"e;"s;":;012
-        "-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;012
+        015;012
+	015;012
+        "A;"v;"a;"i;"l;"a;"b;"l;"e;" ;"s;"o;"f;"t;"w;"a;"r;"e;"s;":;015;012
+        "-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;"-;015;012
     0060   / 0
     0060   / 0
     0060   / 0
@@ -176,7 +210,8 @@ MSG,
     0154   / l
     0160   / p
     0051   / )
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -248,7 +283,8 @@ MSG,
     0061   / 1
     0064   / 4
     0067   / 7
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -310,7 +346,8 @@ MSG,
     0067   / 7
     0064   / 4
     0067   / 7
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -372,7 +409,8 @@ MSG,
     0065   / 5
     0067   / 7
     0061   / 1
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -433,8 +471,14 @@ MSG,
     0060   / 0
     0060   / 0
     0064   / 4
+    0063   / 3
+    0057   / /
+    0060   / 0
+    0060   / 0
     0064   / 4
-    0015   / Newline
+    0064   / 4
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -496,7 +540,8 @@ MSG,
     0062   / 2
     0060   / 0
     0062   / 2
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -558,7 +603,8 @@ MSG,
     0067   / 7
     0067   / 7
     0066   / 6
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0060   / 0
@@ -620,7 +666,13 @@ MSG,
     0061   / 1
     0067   / 7
     0065   / 5
-    0015   / Newline
+    0057   / /
+    0060   / 0
+    0065   / 5
+    0067   / 7
+    0065   / 5
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0061   / 1
@@ -687,7 +739,8 @@ MSG,
     0060   / 0
     0061   / 1
     0061   / 1
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0061   / 1
@@ -730,7 +783,8 @@ MSG,
     0062   / 2
     0060   / 0
     0060   / 0
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0061   / 1
@@ -773,7 +827,8 @@ MSG,
     0062   / 2
     0060   / 0
     0060   / 0
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0061   / 1
@@ -816,20 +871,21 @@ MSG,
     0062   / 2
     0060   / 0
     0060   / 0
-    0015   / Newline
+    0012   / CR
+    0015   / NL
 
     0060   / 0
     0061   / 1
     0064   / 4
     0072   / :
     0040   /  
-    0155   / m
-    0171   / y
     0146   / f
     0157   / o
     0143   / c
     0141   / a
     0154   / l
+    0055   / -
+    0070   / 8
     0056   / .
     0142   / b
     0151   / i
@@ -859,7 +915,272 @@ MSG,
     0062   / 2
     0060   / 0
     0060   / 0
-    0015   / Newline
+    0012   / CR
+    0015   / NL
+
+    0060   / 0
+    0061   / 1
+    0065   / 5
+    0072   / :
+    0040   /  
+    0111   / I
+    0156   / n
+    0164   / t
+    0111   / I
+    0117   / O
+    0056   / .
+    0142   / b
+    0151   / i
+    0156   / n
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0120   / P
+    0103   / C
+    0072   / :
+    0060   / 0
+    0061   / 1
+    0060   / 0
+    0060   / 0
+    0012   / CR
+    0015   / NL
+
+    0060   / 0
+    0061   / 1
+    0066   / 6
+    0072   / :
+    0040   /  
+    0111   / I
+    0156   / n
+    0164   / t
+    0157   / o
+    0165   / u
+    0164   / t
+    0056   / .
+    0142   / b
+    0151   / i
+    0156   / n
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0120   / P
+    0103   / C
+    0072   / :
+    0060   / 0
+    0061   / 1
+    0060   / 0
+    0060   / 0
+    0012   / CR
+    0015   / NL
+
+    0060   / 0
+    0061   / 1
+    0067   / 7
+    0072   / :
+    0040   /  
+    0164   / t
+    0163   / s
+    0164   / t
+    0145   / e
+    0163   / s
+    0164   / t
+    0056   / .
+    0142   / b
+    0151   / i
+    0156   / n
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0120   / P
+    0103   / C
+    0072   / :
+    0060   / 0
+    0061   / 1
+    0060   / 0
+    0060   / 0
+    0012   / CR
+    0015   / NL
+
+    0060   / 0
+    0062   / 2
+    0060   / 0
+    0072   / :
+    0040   /  
+    0103   / C
+    0110   / H
+    0105   / E
+    0113   / K
+    0115   / M
+    0117   / O
+    0056   / .
+    0142   / b
+    0156   / n
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0120   / P
+    0103   / C
+    0072   / :
+    0060   / 0
+    0062   / 2
+    0060   / 0
+    0060   / 0
+    0012   / CR
+    0015   / NL
+
+    0060   / 0
+    0062   / 2
+    0061   / 1
+    0072   / :
+    0040   /  
+    0143   / c
+    0150   / h
+    0153   / k
+    0155   / m
+    0157   / o
+    0157   / o
+    0056   / .
+    0142   / b
+    0151   / i
+    0156   / n
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0120   / P
+    0103   / C
+    0072   / :
+    0060   / 0
+    0062   / 2
+    0060   / 0
+    0060   / 0
+    0012   / CR
+    0015   / NL
+
+    0060   / 0
+    0062   / 2
+    0062   / 2
+    0072   / :
+    0040   /  
+    0151   / i
+    0162   / r
+    0161   / q
+    0164   / t
+    0145   / e
+    0163   / s
+    0164   / t
+    0056   / .
+    0142   / b
+    0151   / i
+    0156   / n
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0040   /  
+    0120   / P
+    0103   / C
+    0072   / :
+    0060   / 0
+    0062   / 2
+    0060   / 0
+    0060   / 0
+    0012   / CR
+    0015   / NL
 
     "<;"e;"n;"d;">;0015
     0

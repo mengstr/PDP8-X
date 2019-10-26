@@ -1,3 +1,21 @@
+-----------------------------------------
+Fetch opcode
+-----------------------------------------
+CK_FETCH    At falling latches PCL
+PC2ADDR     When high connect PC to RAMADDR 
+RAM_OE      When high outputs the contents of the ram to RAMDATA and DATA
+IR_CK       While high the DATA is transparent to IR
+PC_CK       At falling edge the PC counter advances (or data loads)
+
+-----------------------------------------
+Direct jmp
+-----------------------------------------
+IR2PC       When high connects lower part of IR to PCIN, rest of PCIN is either 0 or from LPC 
+PC_LD       When high prepare PC to accept new data at falling edge of PC_CK
+    PC_CK       At falling edge the PC counter advances (or data loads)
+
+
+
             876 543 210
 
 1   AND 000 100 001 xxx 
@@ -58,7 +76,7 @@ LATCHDATA   "DLATCH"    INC
            .______________.    .              .              .              .              .                 
 CK0________|              |____.______________.______________.______________.______________._________________
            .     ____     .    .              .              .              .              .                 
-STB0________.____|    |____.____.______________.______________.______________.______________._________________
+STB0________.____|   |____.____.______________.______________.______________.______________._________________
            .              .    .              .              .              .              .                  
            .              .    .              .              .              .              .                 
            .              .    .______________.              .              .              .                 

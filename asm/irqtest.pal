@@ -1,0 +1,93 @@
+*0
+IRQ,0
+    KCF
+    ISZ INTS
+    NOP
+    ION
+    JMP I 0
+
+*20
+CNT, .-.
+INTS, .-.
+
+    *200
+START,
+    ION
+
+LOOP,
+    CLA
+    TAD (7677)
+
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC     /16
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC     /32
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC     /48
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC
+    IAC     /64
+
+
+
+    DCA CNT
+    ISZ CNT
+    HLT 
+    JMP LOOP
+
+$
