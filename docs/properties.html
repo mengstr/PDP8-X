@@ -45,6 +45,12 @@ function Display(v) {
         document.getElementById("colordiv").style.display="none";
         document.getElementById("valuediv").style.display="block";
     } else {
+        document.getElementById('color1').value=window.opener.color1;
+        document.getElementById('color2').value=window.opener.color2;
+        document.getElementById('color3').value=window.opener.color3;
+        document.getElementById('color4').value=window.opener.color4;
+        document.getElementById('color5').value=window.opener.color5;
+        document.getElementById('color6').value=window.opener.color6;
         document.getElementById("colordiv").style.display="block";
         document.getElementById("valuediv").style.display="none";
     }
