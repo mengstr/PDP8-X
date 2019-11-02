@@ -18,18 +18,8 @@ body {
 <script>
     // Open up a child window for the modifier-controls
     let features = "alwaysRaised=yes,alwaysOnTop=yes,menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=600,height=100";
-//    var cw=window.open("properties.html", "Properties", features);
-cw = window.open();
-await load(cw, "properties.html");
+    var cw=window.open("properties.html", "Properties", features);
 
-cw.document.getElementById('color1').value='#012345'
-cw.document.getElementById('color2').value='#123456'
-cw.document.getElementById('color3').value='#234567'
-cw.document.getElementById('color4').value='#345678'
-cw.document.getElementById('color5').value='#456789'
-cw.document.getElementById('color6').value='#56789a'
-cw.document.getElementById('color7').value='#6789ab'
-cw.document.getElementById('color8').value='#789abc'
 var v=[]
 v['_MAINWIDTH']         ={min:100,max:500}
 v['_MAINHEIGHT']        ={min:50,max:300}
@@ -59,6 +49,12 @@ v['_POWER_X']          ={min:0,max:500}
 v['_POWER_Y']          ={min:-100,max:0 }
 
 
+var color1='#000000'
+var color2='#601300'
+var color3='#c53200'
+var color4='#eea800'
+var color5='#f4eaac'
+var color6='#ffffff'
 var _LOGOXPOS=30
 var _LOGO_SCALE=0.08
 var _NAME_XPOS=200
