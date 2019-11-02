@@ -18,38 +18,7 @@ body {
 <script>
     // Open up a child window for the modifier-controls
     let features = "alwaysRaised=yes,alwaysOnTop=yes,menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=600,height=100";
-    var cw=window.open("", "myWindow", features);
-    cw.document.write('<button onclick="Download()">SVG</button>&nbsp;');
-    cw.document.write('<button onclick="Display(0)">VALUES</button>&nbsp;');
-    cw.document.write('<button onclick="Display(1)">COLORS</button>&nbsp;');
-    cw.document.write('<br>');
-    cw.document.write('Name:<span id="vname"><select id="variable"></select></span>&nbsp;');
-    cw.document.write('<span id="values" style="display:none">');
-    cw.document.write('  Min:<span id="vmin">.</span>&nbsp;');
-    cw.document.write('  Max:<span id="vmax">.</span>&nbsp;');
-    cw.document.write('  Current:<span id="vcurr">.</span>');
-    cw.document.write('  <br><input type="range" min="1" max="100" value="50" class="slider" id="slider" style="width:100%">');
-    cw.document.write('</span>');
-    cw.document.write('<span id="colors" style="display:block">');
-    for (let i=1; i<=8; i++) {
-        cw.document.write('  <div style="display:inline-block;margin-right:12px;">');
-        cw.document.write('    <label for="color'+i+'" style="display:block">Color'+i+'</label>');
-        cw.document.write('    <input type="color" value="#ff0000" id="color'+i+'">');
-        cw.document.write('  </div>');
-    }
-    cw.document.write('</span>');
-    cw.document.write('<'+'script'+'>');
-    cw.document.write('    function Display(v) {'); 
-    cw.document.write('        if (v==0) {'); 
-    cw.document.write('            document.getElementById("colors").style.display="none";');
-    cw.document.write('            document.getElementById("values").style.display="block";');
-    cw.document.write('        } else {');
-    cw.document.write('            document.getElementById("colors").style.display="block";');
-    cw.document.write('            document.getElementById("values").style.display="none";');
-    cw.document.write('        }');
-    cw.document.write('    }');
-    cw.document.write('  setInterval(function(){try{console.log(opener.window)}catch{this.close()}}, 1000);');
-    cw.document.write('<'+'/'+'script'+'>');
+    var cw=window.open("properties.html", "Properties", features);
 </script>
 
 <script>
