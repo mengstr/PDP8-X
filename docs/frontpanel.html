@@ -18,10 +18,10 @@ body {
 <script>
     // Open up a child window for the modifier-controls
     let features = "alwaysRaised=yes,alwaysOnTop=yes,menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=600,height=100";
-    var cw=window.open("properties.html", "Properties", features);
+//    var cw=window.open("properties.html", "Properties", features);
+cw = window.open();
+await load(cw, "properties.html");
 
-    console.log(cw)
-    
 cw.document.getElementById('color1').value='#012345'
 cw.document.getElementById('color2').value='#123456'
 cw.document.getElementById('color3').value='#234567'
