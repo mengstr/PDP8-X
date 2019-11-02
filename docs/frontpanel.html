@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<title>PDP-8/X Front Panel Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.0.13/svg.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Audiowide|Bungee|Coustard|Lexend+Zetta|Michroma|Syncopate:700&display=swap" rel="stylesheet">
+<style>
+body {
+    background-color: #FFF; 
+    padding-left:10px
+}
+</style>
+
+<script>
+</script>
+
+
+
+<script>
+    // Open up a child window for the modifier-controls
+    let features = "alwaysRaised=yes,alwaysOnTop=yes,menubar=no,location=no,resizable=no,scrollbars=no,status=no,width=600,height=100";
+    var cw=window.open("", "myWindow", features);
+    cw.document.write('<button onclick="Download()">SVG</button>&nbsp;');
+    cw.document.write('<button onclick="Display(0)">VALUES</button>&nbsp;');
+    cw.document.write('<button onclick="Display(1)">COLORS</button>&nbsp;');
+    cw.document.write('<br>');
+    cw.document.write('Name:<span id="vname"><select id="variable"></select></span>&nbsp;');
+    cw.document.write('<span id="values" style="display:none">');
+    cw.document.write('  Min:<span id="vmin">.</span>&nbsp;');
+    cw.document.write('  Max:<span id="vmax">.</span>&nbsp;');
+    cw.document.write('  Current:<span id="vcurr">.</span>');
+    cw.document.write('  <br><input type="range" min="1" max="100" value="50" class="slider" id="slider" style="width:100%">');
+    cw.document.write('</span>');
+    cw.document.write('<span id="colors" style="display:block">');
+    for (let i=1; i<=8; i++) {
+        cw.document.write('  <div style="display:inline-block;margin-right:12px;">');
+        cw.document.write('    <label for="color'+i+'" style="display:block">Color'+i+'</label>');
+        cw.document.write('    <input type="color" value="#ff0000" id="color'+i+'">');
+        cw.document.write('  </div>');
+    }
+    cw.document.write('</span>');
+    cw.document.write('<'+'script'+'>');
+    cw.document.write('    function Display(v) {'); 
+    cw.document.write('        if (v==0) {'); 
+    cw.document.write('            document.getElementById("colors").style.display="none";');
+    cw.document.write('            document.getElementById("values").style.display="block";');
+    cw.document.write('        } else {');
+    cw.document.write('            document.getElementById("colors").style.display="block";');
+    cw.document.write('            document.getElementById("values").style.display="none";');
+    cw.document.write('        }');
+    cw.document.write('    }');
+    cw.document.write('  setInterval(function(){try{console.log(opener.window)}catch{this.close()}}, 1000);');
+    cw.document.write('<'+'/'+'script'+'>');
+</script>
+
+<script>
+
+cw.document.getElementById('color1').value='#012345'
+cw.document.getElementById('color2').value='#123456'
+cw.document.getElementById('color3').value='#234567'
+cw.document.getElementById('color4').value='#345678'
+cw.document.getElementById('color5').value='#456789'
+cw.document.getElementById('color6').value='#56789a'
+cw.document.getElementById('color7').value='#6789ab'
+cw.document.getElementById('color8').value='#789abc'
+var v=[]
+v['_MAINWIDTH']         ={min:100,max:500}
+v['_MAINHEIGHT']        ={min:50,max:300}
+v['_LOGOXPOS']          ={min:3,max:500}
+v['_LOGO_SCALE']        ={min:0.01,max:0.2, step:0.005}
+v['_NAME_XPOS']          ={min:0,max:500}
+v['_NAME_YPOS']          ={min:-50,max:50}
+v['_NAME_SIZE']          ={min:1,max:30, step:0.25}
+v['_FRAMETOPTHICKNESS'] ={min:0,max:100}
+v['_FRAMETHICKNESS']    ={min:0,max:20}
+v['_LABELSIZE_NUM']     ={min:0.4,max:20, step:0.1}
+v['_LABELSIZE_F1']      ={min:0.4,max:20, step:0.1}
+v['_LABELSIZE_F2']      ={min:0.4,max:20, step:0.1}
+v['_LABEL_TOPOFS_NUM']   ={min:0.1,max:40, step:0.1}
+v['_LABEL_BOTOFS_NUM']   ={min:0.1,max:40, step:0.1}
+v['_LABEL_TOPOFS_F1']   ={min:0.1,max:40, step:0.1}
+v['_LABEL_BOTOFS_F1']   ={min:0.1,max:40, step:0.1}
+v['_LABEL_TOPOFS_F2']   ={min:0.1,max:40, step:0.1}
+v['_LABEL_BOTOFS_F2']   ={min:0.1,max:40, step:0.1}
+v['_LED_SHAPE'] = {min:0, max:1}
+v['_REGISTER_YPOS'] = {min:0, max:400}
+v['_REGISTER_SPACING']   ={min:1,max:40}
+v['_REGISTER_FONT_SIZE']   ={min:1,max:20, step:0.1}
+v['_DISP_SPACING']          ={min:1,max:30, step:0.25}
+v['_DISP_SLANT']          ={min:-30,max:30, step:0.25}
+v['_POWER_X']          ={min:0,max:500}
+v['_POWER_Y']          ={min:-100,max:0 }
+
+
+var _LOGOXPOS=30
+var _LOGO_SCALE=0.08
+var _NAME_XPOS=200
+var _NAME_YPOS=1
+var _NAME_SIZE=16
+var _FRAMETOPTHICKNESS=15
+var _FRAMETHICKNESS=2
+var _MAINWIDTH=450
+var _MAINHEIGHT=220
+var _LABELSIZE_NUM=4.5
+var _LABELSIZE_F1=4.5
+var _LABELSIZE_F2=4.5
+var _LABEL_TOPOFS_NUM=15
+var _LABEL_BOTOFS_NUM=15
+var _LABEL_TOPOFS_F1=15
+var _LABEL_BOTOFS_F1=15
+var _LABEL_TOPOFS_F2=15
+var _LABEL_BOTOFS_F2=15
+var _LED_SHAPE=0
+var _REGISTER_YPOS=70
+var _REGISTER_SPACING=16
+var _REGISTER_FONT_SIZE=8
+var _DISP_SPACING=12
+var _DISP_SLANT=0
+var _POWER_X=35
+var _POWER_Y=-15
+
+
+// Update varaibles with new default from URL
+let params = new URLSearchParams(window.location.search);
+for (let p of params) {
+    if (p[0].substr(0,1)=='_') eval(p[0]+'=+'+p[1])
+}
+
+</script>
+
+
+
+
+<body>
+
+        
+
+<div id="svg">
+<script>
+const A4w=297, A4h=210
+const A3w=420, A3h=297
+const A2w=594, A2h=420
+const A1w=841, A1h=594
+var draw=SVG().addTo('#svg').size(A2w, A2h)
+
+function CreateDrawing() {
+    draw.clear();
+    const CUT_COLOR="#FFF"
+    const CUT_STROKE=0.01
+    //const MAINCOLOR1='#aaf0d1'  // Magic Mint Green
+    const MAINCOLOR1='#f9931e'
+    const MAINCOLOR2='#c3a61e'
+
+    const CUT={'fill':'none', 'stroke': CUT_COLOR, 'stroke-width': CUT_STROKE}
+    const SEGMENTS={'fill':'WHITE', 'stroke': 'none', 'stroke-width': 0}
+    const LED={'fill':'WHITE', 'stroke': 'none', 'stroke-width': 0}
+    const LEDGROUPBAR={'stroke':MAINCOLOR1, 'stroke-width':0.5}
+
+    //const HIDDEN={'fill':'#888', 'stroke': 'none', 'stroke-width': 'none'}
+
+
+    const WALLTHICKNESS=2                   // Aluminium L-profile
+    const PROFILEEDGE=7                     // Inner height of the L-profile
+
+
+    // Part of the front panel that is visible (i.e not hidden by the aluminum frame)
+    const VISIBLETOP=PROFILEEDGE
+    const VISIBLELEFT=PROFILEEDGE
+    const VISIBLEWIDTH=_MAINWIDTH-PROFILEEDGE*2
+    const VISIBLEHEIGHT=_MAINHEIGHT-PROFILEEDGE*2
+
+    draw.rect(_MAINWIDTH-PROFILEEDGE, _MAINHEIGHT-PROFILEEDGE)
+        .move(PROFILEEDGE/2,PROFILEEDGE/2)
+        .attr({'fill':'BLACK', 'stroke':'#CCC','stroke-width':PROFILEEDGE})
+
+    draw.rect(_MAINWIDTH, _MAINHEIGHT)
+        .attr(CUT)
+
+    // Space between the edge of the aluminum frame and the start of decorative printing
+    const EDGEMARGIN=5
+
+    // Usable area for printing and items
+    const TOP=VISIBLETOP+EDGEMARGIN
+    const LEFT=VISIBLELEFT+EDGEMARGIN
+    const HEIGHT=VISIBLEHEIGHT-EDGEMARGIN*2
+    const WIDTH=VISIBLEWIDTH-EDGEMARGIN*2
+    const BOT=TOP+HEIGHT
+    const RIGHT=LEFT+WIDTH
+    //draw.rect(WIDTH, HEIGHT).move(LEFT,TOP).attr({'fill':'none','stroke': 'RED'})
+
+    // var pattern = draw.pattern(2, 2, function(add) {
+    //   add.rect(2,2).fill('#DDD')
+    //   add.rect(1,1)
+    //   add.rect(1,1).move(10,10)
+    // })
+
+    var fonts=['Audiowide','Lexend Zetta','Michroma','Syncopate','Coustard','Bungee']
+
+    // Decorative frame
+    const FRAME_COLOR=MAINCOLOR1
+    const FRAME_BGCOLOR='BLACK'
+    Frame(LEFT,TOP,WIDTH,HEIGHT, _FRAMETOPTHICKNESS, _FRAMETHICKNESS);
+
+    // Digital Equipment logo from https://commons.wikimedia.org/wiki/File:Digital_556-flattened4.svg
+    const LOGO_PLATECOLOR='BLACK'
+    const LOGO_HOLECOLOR=FRAME_COLOR
+    Logo(LEFT+_LOGOXPOS, TOP+1, _LOGO_SCALE);
+
+    // Series name of the PDP
+    Name(LEFT+_NAME_XPOS, TOP+_NAME_YPOS, _NAME_SIZE, fonts[2]);
+
+    // Key power switch
+
+    let x=35, y=BOT-15
+    draw.circle(15)
+        .center(_POWER_X,BOT+_POWER_Y)
+        .attr({'fill':'none', 'stroke':'#FFF','stroke-width':0.1})
+    draw.path('m 5.4 -2.615 l 0 5.22 a 6.0 6.0 0 0 1 -10.8 0 l 0 -5.22 a 6.0 6.0 0 0 1 10.8 0')
+        .center(_POWER_X, BOT+_POWER_Y)
+        .rotate(-45)
+        .attr({'fill':'none', 'stroke':'#FFF','stroke-width':0.1})
+
+
+    const STROKE_CUT=0.1
+    const COLOR_CUT='#CCC'
+    const SWITCH_COLOR=FRAME_COLOR
+
+
+    //const CC_SWITCH=10.5 //https://www.mouser.se/datasheet/2/140/400A-1-346003.pdf
+    const CC_SWITCH=14.5 
+    const SWITCHSTART=LEFT+55
+    var zeropos=Switches(SWITCHSTART, BOT-20);
+
+    // Registers LEDs and 7-SEG displays
+    const DIA_LED=5
+    const SEG_SPACING=1
+    const SEGHOR_W=4.5 //6
+    const SEGHOR_H=1.1 //1.2
+    const SEGVER_W=SEGHOR_H
+    const SEGVER_H=SEGHOR_W+SEGHOR_H/2
+    const SEG_RADIUS=SEGHOR_H/3
+    Registers(zeropos,_REGISTER_YPOS);
+
+
+    //
+    // LEDS
+    //
+    function Draw1LED(x, y) {
+        if (_LED_SHAPE==0)
+            draw.circle(DIA_LED)
+                .center(x, y)
+                .attr(LED)
+        else 
+            draw.rect(DIA_LED,DIA_LED)
+                .center(x, y)
+                .attr(LED)
+    }
+
+    function REGISTERLEDS(xstart, y, cnt) {
+        let liney=y-DIA_LED/2-1.5
+        let lineXextend=CC_SWITCH*0.25
+        draw.line(
+                xstart-lineXextend, liney, 
+                xstart+(cnt-1)*CC_SWITCH+lineXextend, liney)
+            .attr(LEDGROUPBAR)
+
+        for (let i=0; i<cnt; i++) {
+            Draw1LED(xstart+i*CC_SWITCH,y)
+        }
+        return cnt*CC_SWITCH
+    }
+
+    //
+    // SEVEN SEGMENT DISPLAYS
+    //
+    function HSEVENSEG(x,y) {
+        return draw.rect(SEGHOR_W,SEGHOR_H)
+                .radius(SEG_RADIUS)
+                .center(x,y)
+                .attr(SEGMENTS)
+    }
+
+    function VSEVENSEG(x,y) {
+        return draw.rect(SEGVER_W,SEGVER_H)
+            .radius(SEG_RADIUS)
+            .center(x,y)
+            .attr(SEGMENTS)
+    }
+
+    function SEVENSEGS(x,y) {
+        let g = draw.group()
+        let segs=[]
+        segs.push(HSEVENSEG(x,y)) // G
+        segs.push(HSEVENSEG(x,y-SEGVER_H-SEG_SPACING/2)) //A
+        segs.push(HSEVENSEG(x,y+SEGVER_H+SEG_SPACING/2)) //D
+        segs.push(VSEVENSEG(x-(SEGHOR_W/2+SEG_SPACING+SEGVER_W/2),y-(SEGVER_H/2+SEG_SPACING/2))) //F
+        segs.push(VSEVENSEG(x+(SEGHOR_W/2+SEG_SPACING+SEGVER_W/2),y-(SEGVER_H/2+SEG_SPACING/2))) //B
+        segs.push(VSEVENSEG(x-(SEGHOR_W/2+SEG_SPACING+SEGVER_W/2),y+(SEGVER_H/2+SEG_SPACING/2))) //E
+        segs.push(VSEVENSEG(x+(SEGHOR_W/2+SEG_SPACING+SEGVER_W/2),y+(SEGVER_H/2+SEG_SPACING/2))) //C
+        for (let i=0; i<7; i++) g.add(segs[i])
+        g.skew(_DISP_SLANT,0)
+        // for (let i=0; i<7; i++) 
+        //     draw.circle(3,3).center(segs[i].rbox(draw).cx,segs[i].rbox(draw).cy).attr({ 'fill':'none', 'stroke': COLOR_CUT, 'stroke-width': STROKE_CUT })
+    }
+
+
+    //
+    // LOGO
+    //
+    function Logo(x,y,sc) {
+        var adjx=3, adjy=3  // The SVG code from wikimedia needs to be repositioned a bit
+
+        var logo_plate='M3 3L3 167L78 167L78 3L3 3 M85 3L85 167L155 167L155 3L85 3 M163 3L163 167L237 167L237 3L163 3 M245 3L245 167L314 167L314 3L245 3 M322 3L322 167L393 167L393 3L322 3 M402 3L402 167L476 167L476 3L402 3 M484 3L484 167L553 167L553 3L484 3z'
+        var logo_text='M49 42L49 71C45.8823 68.9632 42.7457 66.9584 39 66.3333C-1.39159 59.5927 11.717 147.209 49 121L49 124L64 124 L64 42L49 42 M113 42L113 55L127 55L127 42L113 42 M272 42L272 55L287 55L287 42L272 42 M350 42L350 66L342 66L342 76L350 76L350 115C350 126 368 126 374.4 119.5L374 112L364 113L364 76L374 76L374 66L364 66L364 42L350 42 M512 42L512 124L526 124L526 42L512 42 M418 78C421.257 78.8887 425.357 81.2535 428.791 80.5887C433.049 79.7645 443.889 68.5602 447.149 79.1049C449.795 87.6657 425.252 89.769 420.61 94.5324C412.496 102.857 413.636 118.875 425.015 123.91C433.122 127.499 442.064 124.171 449 120L448 124L462 124C461.103 112.639 461 101.421 461 90C461 84.6599 462.07 77.9192 459.543 73.0154C450.547 55.5581 425.064 64.801 418 78 M210 121C210 132.511 200.499 146.904 190 133L177 137C182.018 154.876 212.035 155.102 220.351 139.996C224.304 132.815 223 123.904 223 116L223 67L210 67L210 71C206.89 69.0377 203.661 67.1077 200 66.3804C189.602 64.3148 180.392 72.9662 176.779 82C169.96 99.0438 177.969 125.355 199 124.981C203.403 124.902 206.388 123.321 210 121 M113 67L113 124L127 124L127 67L113 67 M272 67L272 124L287 124L287 67L272 67z'
+        var logo_holes='M36.0046 78.8735C22.7483 83.9126 25.6376 118.177 42.956 111.397C52.9462 107.485 49.982 73.5602 36.0046 78.8735 M197.015 78.7855C183.656 83.2411 186.175 117.766 202.985 111.397C213.887 107.265 211.192 74.0569 197.015 78.7855 M447 94C442.343 96.6469 436.635 96.806 432.214 99.456C419.741 106.932 439.323 122.114 446.821 108.826C447.992 106.75 447.967 104.31 447.996 102C448.031 99.1725 448.089 96.5956 447 94z'
+
+        var g = draw.group()
+        var tmp=g.path(logo_plate).dx(-adjx).dy(-adjy).attr({ 'fill':LOGO_PLATECOLOR, 'stroke': 'none' })
+        g.path(logo_text).dx(-adjx).dy(-adjy).attr({ 'fill':LOGO_HOLECOLOR, 'stroke': 'none' })
+        g.path(logo_holes).dx(-adjx).dy(-adjy).attr({ 'fill':LOGO_PLATECOLOR, 'stroke': 'none' })
+
+        var w=tmp.width();
+        var h=tmp.height();
+        g.move(-w/2.0+(w*sc)/2.0,-h/2.0+(h*sc)/2.0).dmove(x,y).scale(sc)
+    }
+
+    //
+    // FRAME
+    //
+    function Frame(x,y,w,h, topthick, thick) {
+        var frame=draw.rect(w,h).move(x,y)
+            .radius(15)
+            .attr({'fill':FRAME_COLOR})
+        draw.rect(w-thick*2,h-(topthick+thick)).move(x+thick,y+topthick)
+            .radius(15)
+            .attr({'fill':FRAME_BGCOLOR})
+    }
+
+
+    //
+    // NAME
+    //
+    function Name(x,y,siz, fnt) {
+        draw.text('PDP8/X')
+            .move(x, y)
+            .font({family: fnt, size:siz, anchor: 'start'})
+            .attr({'fill':FRAME_BGCOLOR})
+    }
+
+
+    //
+    // REGISTERS (LEDs, LABELS AND 7SEGS)
+    //
+    function Registers(x,y) {
+        let currY=y;
+        let txt=''
+
+    //    LEDS(x-CC_SWITCH*3, y-_REGISTER_SPACING/2, 3)
+        for (let j=0; j<5; j++) {
+            let currX=x
+            switch (j) {
+                case 0:
+                    txt='PC'
+                    currX-=CC_SWITCH*3
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    break;
+                case 1: 
+                    txt='MA'
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    break;
+                case 2: 
+                    txt='MB'
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    break;
+                case 3: 
+                    txt='AC'
+                    currX-=CC_SWITCH*1
+                    currX+=REGISTERLEDS(currX, currY, 1)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    break;
+                case 4: 
+                    txt='MQ'
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    currX+=REGISTERLEDS(currX, currY, 3)
+                    break;
+            }
+            draw.text(txt)
+                .move(currX,currY-3)
+                .font({family: fonts[2], size:_REGISTER_FONT_SIZE, anchor: 'start' })
+                .attr({'fill': '#FFF'})
+            currX+=40
+            for (var i=0; i<4; i++) {
+                SEVENSEGS(currX,currY)
+                currX+=_DISP_SPACING
+            }
+            currY+=_REGISTER_SPACING
+        }
+    }
+
+
+    //
+    // SWITCHES
+    //
+    function Switch(x, y, label) {
+        let siz=0,ofst=0, ofsb=0;
+        if (label.typ==0) {
+            siz=_LABELSIZE_NUM; 
+            ofst=_LABEL_TOPOFS_NUM; 
+            ofsb=_LABEL_BOTOFS_NUM
+        }
+        if (label.typ==1) {
+            siz=_LABELSIZE_F1; 
+            ofst=_LABEL_TOPOFS_F1; 
+            ofsb=_LABEL_BOTOFS_F1
+        }
+        if (label.typ==2) {
+            siz=_LABELSIZE_F2; 
+            ofst=_LABEL_TOPOFS_F2; 
+            ofsb=_LABEL_BOTOFS_F2
+        }
+
+        draw.rect(CC_SWITCH-1,CC_SWITCH+5)
+            .radius(3)
+            .center(x,y)
+            .attr({ 'fill':'none', 'stroke': COLOR_CUT, 'stroke-width': STROKE_CUT })
+        draw.text(label.txt1)
+            .move(x, y-ofst)
+            .font({family: 'Arial Narrow', size:siz, anchor: 'middle'})
+            .attr({'fill': '#FFF'})
+        draw.text(label.txt2)
+            .move(x, y+ofsb)
+            .font({family: 'Arial Narrow', size:siz, anchor: 'middle'})
+            .attr({'fill': '#FFF'})
+    }
+
+
+    function Switches(x,y) {
+        var zp=0
+        var labels=[
+            {txt1:'A', txt2:'', col:MAINCOLOR1, typ:1},
+            {txt1:'B', txt2:'', col:MAINCOLOR1, typ:1},
+            {txt1:'C', txt2:'', col:MAINCOLOR1, typ:1},
+            {txt1:'D', txt2:'', col:MAINCOLOR1, typ:1},
+            {txt1:'E', txt2:'', col:MAINCOLOR1, typ:1},
+            {txt1:'', txt2:'', col:'', typ:0},
+            {txt1:'0', txt2:'', col:MAINCOLOR1, typ:0},
+            {txt1:'1', txt2:'', col:MAINCOLOR1, typ:0},
+            {txt1:'2', txt2:'', col:MAINCOLOR1, typ:0},
+            {txt1:'3', txt2:'', col:MAINCOLOR2, typ:0},
+            {txt1:'4', txt2:'', col:MAINCOLOR2, typ:0},
+            {txt1:'5', txt2:'', col:MAINCOLOR2, typ:0},
+            {txt1:'6', txt2:'', col:MAINCOLOR1, typ:0},
+            {txt1:'7', txt2:'', col:MAINCOLOR1, typ:0},
+            {txt1:'8', txt2:'', col:MAINCOLOR1, typ:0},
+            {txt1:'9', txt2:'', col:MAINCOLOR2, typ:0},
+            {txt1:'10', txt2:'', col:MAINCOLOR2, typ:0},
+            {txt1:'11', txt2:'', col:MAINCOLOR2, typ:0},
+            {txt1:'', txt2:'', col:'', typ:0},
+            {txt1:'CLEAR', txt2:'LOAD', col:MAINCOLOR1, typ:2},
+            {txt1:'RUN', txt2:'HALT', col:MAINCOLOR1, typ:2},
+            {txt1:'STEP/S', txt2:'STEP/I', col:MAINCOLOR1, typ:2},
+            {txt1:'DEP', txt2:'EXAM', col:MAINCOLOR1, typ:2},
+            ]
+        var boxshrink=2   
+        var extra=0
+        for (var i=0; i<labels.length; i++) {
+            if (labels[i].txt1=='') {
+                extra-=CC_SWITCH/2
+                continue
+            }
+            if (labels[i].txt1=='0') zp=x+CC_SWITCH*i+extra
+
+            if (['0', '3', '6', '9'].includes(labels[i].txt1)) {
+                draw.rect(CC_SWITCH*3-boxshrink*2,10)
+                    .move(x+CC_SWITCH*i+extra+boxshrink-CC_SWITCH/2, y-23)
+                    .radius(1)
+                    .attr({ 'fill':labels[i].col, 'stroke': 'none', 'stroke-width': 0 })
+            }
+            Switch(x+CC_SWITCH*i+extra, y, labels[i])
+        }
+        return zp
+    }
+}
+</script>
+
+
+<script>
+function Download() {
+    var url='https://raw.githubusercontent.com/SmallRoomLabs/PDP8-X/master/mechanical/A2mm.svg'
+    var patch1='xmlns:svgjs="http://svgjs.com/svgjs"'
+
+    fetch(url)
+   .then(function(response) {
+    response.text().then(function(text) {
+        var ink=text
+        var sv=draw.svg()
+
+        // Remove the entire initial <svg> -tag
+        i=sv.indexOf('>')
+        if (i != -1) sv=sv.substr(i+1)
+        // Remove end </svg> -tag
+        sv=sv.replace('</svg>','')
+
+        // Add the svgjs reference to keep parsers happy
+        ink=ink.replace(/<svg/,'<svg '+patch1)
+
+        // Insert the created code in the inkscape template at the (updated) Layer 1
+        var i = ink.lastIndexOf('/>');
+        if (i != -1) {
+            ink = ink.substr(0, i) + ">\n\n"+sv+"\n\n</g>" + ink.substr(i+2);
+        }
+
+        // Trigger a download to the browser with the created svg file
+        dl=document.getElementById('download')
+        dl.href = "data:application/octet-stream,"+encodeURIComponent(ink);
+        dl.download = 'PDP8-X_FrontPanel.svg'
+    })
+  })
+
+
+}
+
+var slider = cw.document.getElementById("slider");
+cw.document.getElementById("vcurr").innerHTML = slider.value; // Display the default slider value
+
+// Update the current slider value (each time you drag the slider handle)
+slider.oninput = function() {
+    cw.document.getElementById("vcurr").innerHTML = this.value;
+    let e=cw.document.getElementById('variable');
+    let name=e.options[e.selectedIndex].text;
+    eval(name+'='+this.value)
+
+    let str=''
+    const ventries = Object.entries(v)
+    for (const [k, d] of ventries) str+=k+'='+eval(k)+'&'
+    history.pushState({}, null, window.location.pathname+'?'+str+'end=');
+    CreateDrawing()
+}
+
+cw.variable.onchange = function() {
+    var e=cw.document.getElementById('variable');
+    var name=e.options[e.selectedIndex].text;
+    cw.document.getElementById('vmin').innerHTML=v[name].min
+    cw.document.getElementById('vmax').innerHTML=v[name].max
+    cw.document.getElementById("vcurr").innerHTML=eval(name)
+    cw.document.getElementById('slider').min=v[name].min
+    cw.document.getElementById('slider').max=v[name].max
+    cw.document.getElementById('slider').step=v[name].step
+    cw.document.getElementById('slider').value=eval(name)
+    CreateDrawing()
+}
+</script>
+
+<script>
+// Updates the dropdown in the popup
+const dd=cw.document.getElementById("variable")
+const ventries = Object.entries(v)
+for (const [k, d] of ventries) {
+    var o=cw.document.createElement("option");
+    o.textContent=k
+    o.value=k
+    dd.appendChild(o);
+}
+</script>
